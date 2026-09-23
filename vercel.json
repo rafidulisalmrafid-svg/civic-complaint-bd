@@ -1,6 +1,8 @@
 {
     "version": 2,
     "framework": null,
+    "outputDirectory": "public",
+    "buildCommand": "npm run build",
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.3"
@@ -8,16 +10,7 @@
     },
     "routes": [
         {
-            "src": "/build/(.*)",
-            "dest": "/public/build/$1"
-        },
-        {
-            "src": "/(favicon\\.ico|robots\\.txt)",
-            "dest": "/public/$1"
-        },
-        {
-            "src": "/(.*\\.(css|js|ico|png|jpg|jpeg|svg|webp|woff|woff2|ttf|eot))",
-            "dest": "/public/$1"
+            "handle": "filesystem"
         },
         {
             "src": "/(.*)",
@@ -26,7 +19,7 @@
     ],
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "false",
+        "APP_DEBUG": "true",
         "APP_URL": "https://civic-complaint-bd.vercel.app",
         "APP_KEY": "base64:7vG3q+X9+d0R3fFk68A5PZ3bT28j9zL4H7sQ1y5+A9w=",
         "APP_LOCALE": "bn",
