@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.{js,jsx,ts,tsx}';
+
+@theme {
+    --color-gov-green: #065F46;
+    --color-gov-emerald: #059669;
+    --color-gov-light: #ECFDF5;
+    --color-civic-slate: #0F172A;
+    --color-civic-muted: #64748B;
+    --color-civic-card: #FFFFFF;
+    --color-civic-bg: #F8FAFC;
+    --color-civic-border: #E2E8F0;
+    
+    --font-bengali: 'Hind Siliguri', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Inter', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+    background-color: #F8FAFC;
+    color: #0F172A;
+}
+
+body {
+    font-family: var(--font-bengali);
+    background-color: #F8FAFC;
+    color: #0F172A;
+    overflow-x: hidden;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* Leaflet Map */
+.leaflet-container {
+    font-family: var(--font-bengali);
+    z-index: 10;
+}
