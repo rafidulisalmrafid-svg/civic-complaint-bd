@@ -74,6 +74,11 @@ $_SERVER['APP_KEY'] = $appKey;
 $_SERVER['DB_CONNECTION'] = 'sqlite';
 $_SERVER['DB_DATABASE'] = $sqliteDest;
 
+// Prevent Symfony from treating /api as script base directory
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+$_SERVER['PHP_SELF'] = '/index.php';
+$_SERVER['SCRIPT_FILENAME'] = dirname(__DIR__) . '/public/index.php';
+
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 /** @var \Illuminate\Foundation\Application $app */
