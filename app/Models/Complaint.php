@@ -31,10 +31,14 @@ class Complaint extends Model
         'longitude',
         'organization_id',
         'office_id',
+        'office_branch_id',
+        'target_post_id',
+        'is_person_unknown',
         'specific_officer_id',
         'assigned_officer_id',
         'current_status',
         'custom_fields_data',
+        'selected_issues_summary',
         'due_at',
         'resolved_at',
         'closed_at',
@@ -45,6 +49,7 @@ class Complaint extends Model
         return [
             'is_anonymous' => 'boolean',
             'is_sensitive' => 'boolean',
+            'is_person_unknown' => 'boolean',
             'latitude' => 'float',
             'longitude' => 'float',
             'custom_fields_data' => 'array',
@@ -154,6 +159,21 @@ class Complaint extends Model
     public function office()
     {
         return $this->belongsTo(Office::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(OfficeBranch::class, 'office_branch_id');
+    }
+
+    public function targetPost()
+    {
+        return $this->belongsTo(Post::class, 'target_post_id');
+    }
+
+    public function selectedIssues()
+    {
+        return $this->hasMany(ComplaintSelectedIssue::class);
     }
 
     public function specificOfficer()

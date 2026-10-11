@@ -15,7 +15,9 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             GeographySeeder::class,
             OrganizationSeeder::class,
+            PostSeeder::class,
             CategorySeeder::class,
+            BranchAndProblemTypeSeeder::class,
             RulesAndSettingsSeeder::class,
             ComplaintSeeder::class,
         ]);

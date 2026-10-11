@@ -79,18 +79,32 @@ class OfficerComplaintController extends Controller
 
         $complaints = $query->latest()->paginate(12)->withQueryString();
 
-        // Queue Statistics
+        // Queue Statistics (Single aggregated query)
         $baseQuery = Complaint::query();
         if (! $user->isMainAdmin() && $officerProfile) {
             $baseQuery->where(fn ($q) => $q->where('assigned_officer_id', $officerProfile->id)->orWhere('office_id', $officerProfile->office_id));
         }
 
+        $officerId = (int) ($officerProfile?->id ?? 0);
+        $officeId = (int) ($officerProfile?->office_id ?? 0);
+        $nowStr = Carbon::now()->toDateTimeString();
+
+        $statsRow = (clone $baseQuery)
+            ->selectRaw("
+                SUM(CASE WHEN assigned_officer_id = {$officerId} THEN 1 ELSE 0 END) as assigned,
+                SUM(CASE WHEN office_id = {$officeId} AND assigned_officer_id IS NULL THEN 1 ELSE 0 END) as office,
+                SUM(CASE WHEN current_status IN ('investigation_started', 'action_taken') THEN 1 ELSE 0 END) as investigating,
+                SUM(CASE WHEN current_status = 'overdue' OR (current_status NOT IN ('resolved', 'closed', 'rejected') AND due_at < '{$nowStr}') THEN 1 ELSE 0 END) as overdue,
+                SUM(CASE WHEN current_status IN ('resolved', 'closed') THEN 1 ELSE 0 END) as resolved
+            ")
+            ->first();
+
         $stats = [
-            'assigned' => (clone $baseQuery)->where('assigned_officer_id', $officerProfile?->id)->count(),
-            'office' => (clone $baseQuery)->where('office_id', $officerProfile?->office_id)->whereNull('assigned_officer_id')->count(),
-            'investigating' => (clone $baseQuery)->whereIn('current_status', ['investigation_started', 'action_taken'])->count(),
-            'overdue' => (clone $baseQuery)->where(fn ($q) => $q->where('current_status', 'overdue')->orWhere(fn ($sub) => $sub->whereNotIn('current_status', ['resolved', 'closed', 'rejected'])->where('due_at', '<', Carbon::now())))->count(),
-            'resolved' => (clone $baseQuery)->whereIn('current_status', ['resolved', 'closed'])->count(),
+            'assigned' => (int) ($statsRow->assigned ?? 0),
+            'office' => (int) ($statsRow->office ?? 0),
+            'investigating' => (int) ($statsRow->investigating ?? 0),
+            'overdue' => (int) ($statsRow->overdue ?? 0),
+            'resolved' => (int) ($statsRow->resolved ?? 0),
         ];
 
         return Inertia::render('Officer/Dashboard', [

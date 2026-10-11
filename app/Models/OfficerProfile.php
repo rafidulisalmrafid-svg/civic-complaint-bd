@@ -17,6 +17,10 @@ class OfficerProfile extends Model
         'official_email',
         'organization_id',
         'office_id',
+        'office_branch_id',
+        'post_id',
+        'is_office_focal_point',
+        'is_district_complaint_officer',
         'division_id',
         'district_id',
         'upazila_id',
@@ -29,12 +33,24 @@ class OfficerProfile extends Model
     {
         return [
             'joining_date' => 'date',
+            'is_office_focal_point' => 'boolean',
+            'is_district_complaint_officer' => 'boolean',
         ];
     }
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function post()
+    {
+        return $this->belongsTo(Post::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(OfficeBranch::class, 'office_branch_id');
     }
 
     public function organization()

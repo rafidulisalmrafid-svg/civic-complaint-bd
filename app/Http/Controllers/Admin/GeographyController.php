@@ -23,13 +23,15 @@ class GeographyController extends Controller
     {
         $tab = $request->query('tab', 'divisions');
 
-        $divisions = Division::withCount(['districts', 'complaints'])->get();
-        $districts = District::with(['division'])->withCount(['upazilas', 'complaints'])->paginate(15);
-        $upazilas = Upazila::with(['district.division'])->withCount(['localGovernments', 'postOffices', 'complaints'])->paginate(15);
-        $localGovernments = LocalGovernment::with(['upazila.district'])->withCount(['wards', 'complaints'])->paginate(15);
-        $wards = Ward::with(['localGovernment.upazila'])->withCount(['areas', 'complaints'])->paginate(15);
-        $areas = Area::with(['ward.localGovernment'])->withCount(['complaints'])->paginate(15);
-        $postOffices = PostOffice::with(['upazila.district'])->paginate(15);
+        $emptyPaginate = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+
+        $divisions = $tab === 'divisions' ? Division::withCount(['districts', 'complaints'])->get() : [];
+        $districts = $tab === 'districts' ? District::with(['division'])->withCount(['upazilas', 'complaints'])->paginate(15)->withQueryString() : $emptyPaginate;
+        $upazilas = $tab === 'upazilas' ? Upazila::with(['district.division'])->withCount(['localGovernments', 'postOffices', 'complaints'])->paginate(15)->withQueryString() : $emptyPaginate;
+        $localGovernments = ($tab === 'localGovs' || $tab === 'localGovernments') ? LocalGovernment::with(['upazila.district'])->withCount(['wards', 'complaints'])->paginate(15)->withQueryString() : $emptyPaginate;
+        $wards = $tab === 'wards' ? Ward::with(['localGovernment.upazila'])->withCount(['areas', 'complaints'])->paginate(15)->withQueryString() : $emptyPaginate;
+        $areas = $tab === 'areas' ? Area::with(['ward.localGovernment'])->withCount(['complaints'])->paginate(15)->withQueryString() : $emptyPaginate;
+        $postOffices = $tab === 'postOffices' ? PostOffice::with(['upazila.district'])->paginate(15)->withQueryString() : $emptyPaginate;
 
         // Simple lookup lists for dropdowns in modals
         $divisionList = Division::where('status', 'active')->select('id', 'name_bn')->get();

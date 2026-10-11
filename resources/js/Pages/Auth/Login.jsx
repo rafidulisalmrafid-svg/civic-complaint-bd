@@ -48,7 +48,6 @@ export default function Login({ demoCredentials }) {
             })
             .catch(() => {
                 setOtpSending(false);
-                // Fallback for local testing
                 setOtpSent(true);
                 setDemoOtpHint('123456');
                 citizenForm.setData('otp', '123456');
@@ -77,27 +76,27 @@ export default function Login({ demoCredentials }) {
         <PublicLayout>
             <Head title="লগইন — নাগরিক সেবা ও কর্মকর্তা পোর্টাল" />
 
-            <div className="max-w-md mx-auto px-4 py-12">
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+            <div className="max-w-md mx-auto px-4 sm:px-6 py-10 sm:py-16">
+                <div className="bg-white rounded-3xl p-6 sm:p-9 border border-slate-200/90 shadow-xl shadow-slate-200/50 space-y-6">
                     {/* Header */}
-                    <div className="text-center">
-                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xl flex items-center justify-center mx-auto mb-3">
+                    <div className="text-center space-y-2">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-800 to-emerald-950 text-white font-bold text-2xl flex items-center justify-center mx-auto shadow-md ring-4 ring-emerald-100">
                             ★
                         </div>
-                        <h1 className="text-xl font-bold text-slate-900">লগইন পোর্টাল</h1>
-                        <p className="text-xs text-slate-500 mt-1">
-                            নাগরিক বা দায়িত্বপ্রাপ্ত কর্মকর্তা হিসেবে আপনার অ্যাকাউন্টে প্রবেশ করুন
+                        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">লগইন পোর্টাল</h1>
+                        <p className="text-xs sm:text-sm text-slate-500 max-w-xs mx-auto">
+                            নাগরিক হিসেবে অভিযোগ ট্র্যাকিং অথবা কর্মকর্তা হিসেবে দায়িত্ব পালনে প্রবেশ করুন
                         </p>
                     </div>
 
                     {/* Tab Selector */}
-                    <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+                    <div className="grid grid-cols-2 p-1.5 bg-slate-100 rounded-2xl text-xs font-bold">
                         <button
                             type="button"
                             onClick={() => setLoginTab('citizen')}
-                            className={`py-2 rounded-lg transition-all ${
+                            className={`py-2.5 rounded-xl transition-all ${
                                 loginTab === 'citizen'
-                                    ? 'bg-white text-emerald-800 shadow-xs'
+                                    ? 'bg-white text-emerald-800 shadow-sm'
                                     : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
@@ -106,9 +105,9 @@ export default function Login({ demoCredentials }) {
                         <button
                             type="button"
                             onClick={() => setLoginTab('officer')}
-                            className={`py-2 rounded-lg transition-all ${
+                            className={`py-2.5 rounded-xl transition-all ${
                                 loginTab === 'officer'
-                                    ? 'bg-white text-emerald-800 shadow-xs'
+                                    ? 'bg-white text-emerald-800 shadow-sm'
                                     : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
@@ -122,17 +121,17 @@ export default function Login({ demoCredentials }) {
                             {!otpSent ? (
                                 <form onSubmit={handleSendOtp} className="space-y-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
                                             মোবাইল নম্বর
                                         </label>
                                         <div className="relative">
-                                            <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                                            <Phone className="w-4 h-4 text-emerald-600 absolute left-3.5 top-3.5" />
                                             <input
                                                 type="text"
                                                 value={citizenForm.data.phone}
                                                 onChange={(e) => citizenForm.setData('phone', e.target.value)}
                                                 placeholder="017xxxxxxxx"
-                                                className="w-full rounded-xl border-slate-300 text-sm pl-9 p-2.5 font-mono focus:border-emerald-500 focus:ring-emerald-500"
+                                                className="w-full rounded-2xl border-slate-300 text-sm pl-10 py-3 font-mono focus:border-emerald-500 focus:ring-emerald-500"
                                             />
                                         </div>
                                         {citizenForm.errors.phone && <p className="text-xs text-red-600 mt-1">{citizenForm.errors.phone}</p>}
@@ -141,25 +140,29 @@ export default function Login({ demoCredentials }) {
                                     <button
                                         type="submit"
                                         disabled={otpSending}
-                                        className="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm shadow-xs transition-colors flex items-center justify-center gap-2"
+                                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
                                     >
                                         {otpSending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                                         <span>{otpSending ? 'ওটিপি পাঠানো হচ্ছে...' : 'ওটিপি (OTP) পাঠান'}</span>
                                     </button>
+
+                                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-600">
+                                        ডেমো নাগরিক নম্বর: <strong className="font-mono text-slate-900">01711223344</strong> (স্বয়ংক্রিয় ওটিপি: <strong className="font-mono text-emerald-700">123456</strong>)
+                                    </div>
                                 </form>
                             ) : (
                                 <form onSubmit={handleVerifyOtp} className="space-y-4">
-                                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
-                                        <p className="font-semibold">{citizenForm.data.phone} নম্বরে ওটিপি কোড পাঠানো হয়েছে।</p>
+                                    <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800">
+                                        <p className="font-semibold">{citizenForm.data.phone} নম্বরে ৬ সংখ্যার ওটিপি পাঠানো হয়েছে।</p>
                                         {demoOtpHint && (
-                                            <p className="text-emerald-700 mt-1 font-mono font-bold">
+                                            <p className="text-emerald-800 mt-1 font-mono font-bold">
                                                 ডেমো ওটিপি কোড: {demoOtpHint}
                                             </p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
                                             ৬ সংখ্যার ওটিপি কোড দিন
                                         </label>
                                         <input
@@ -168,7 +171,7 @@ export default function Login({ demoCredentials }) {
                                             onChange={(e) => citizenForm.setData('otp', e.target.value)}
                                             placeholder="123456"
                                             maxLength={6}
-                                            className="w-full text-center tracking-widest font-mono text-xl font-bold rounded-xl border-slate-300 p-2.5 focus:border-emerald-500 focus:ring-emerald-500"
+                                            className="w-full text-center tracking-widest font-mono text-2xl font-extrabold rounded-2xl border-slate-300 py-3 focus:border-emerald-500 focus:ring-emerald-500"
                                         />
                                         {citizenForm.errors.otp && <p className="text-xs text-red-600 mt-1">{citizenForm.errors.otp}</p>}
                                     </div>
@@ -176,7 +179,7 @@ export default function Login({ demoCredentials }) {
                                     <button
                                         type="submit"
                                         disabled={citizenForm.processing}
-                                        className="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm shadow-xs transition-colors"
+                                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95"
                                     >
                                         যাচাই করুন ও প্রবেশ করুন
                                     </button>
@@ -184,7 +187,7 @@ export default function Login({ demoCredentials }) {
                                     <button
                                         type="button"
                                         onClick={() => setOtpSent(false)}
-                                        className="w-full text-center text-xs text-slate-500 hover:text-slate-800"
+                                        className="w-full text-center text-xs text-slate-500 hover:text-slate-800 pt-1"
                                     >
                                         ভিন্ন নম্বর ব্যবহার করুন
                                     </button>
@@ -197,7 +200,7 @@ export default function Login({ demoCredentials }) {
                     {loginTab === 'officer' && (
                         <form onSubmit={handleOfficerLogin} className="space-y-4 animate-fade-in">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                                     অফিসিয়াল ইমেইল অথবা মোবাইল নম্বর
                                 </label>
                                 <input
@@ -205,13 +208,13 @@ export default function Login({ demoCredentials }) {
                                     value={officerForm.data.login}
                                     onChange={(e) => officerForm.setData('login', e.target.value)}
                                     placeholder="admin@nagorik.gov.bd"
-                                    className="w-full rounded-xl border-slate-300 text-sm p-2.5 focus:border-emerald-500 focus:ring-emerald-500 font-mono"
+                                    className="w-full rounded-2xl border-slate-300 text-sm py-3 px-4 focus:border-emerald-500 focus:ring-emerald-500 font-mono"
                                 />
                                 {officerForm.errors.login && <p className="text-xs text-red-600 mt-1">{officerForm.errors.login}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                                     গোপন পাসওয়ার্ড
                                 </label>
                                 <input
@@ -219,7 +222,7 @@ export default function Login({ demoCredentials }) {
                                     value={officerForm.data.password}
                                     onChange={(e) => officerForm.setData('password', e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full rounded-xl border-slate-300 text-sm p-2.5 focus:border-emerald-500 focus:ring-emerald-500"
+                                    className="w-full rounded-2xl border-slate-300 text-sm py-3 px-4 focus:border-emerald-500 focus:ring-emerald-500"
                                 />
                                 {officerForm.errors.password && <p className="text-xs text-red-600 mt-1">{officerForm.errors.password}</p>}
                             </div>
@@ -227,7 +230,7 @@ export default function Login({ demoCredentials }) {
                             <button
                                 type="submit"
                                 disabled={officerForm.processing}
-                                className="w-full py-3 rounded-xl bg-slate-900 hover:bg-emerald-800 text-white font-semibold text-sm shadow-xs transition-colors flex items-center justify-center gap-2"
+                                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 hover:from-emerald-800 hover:to-teal-800 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
                             >
                                 <span>লগইন করুন</span>
                                 <ArrowRight className="w-4 h-4" />
@@ -235,33 +238,42 @@ export default function Login({ demoCredentials }) {
 
                             {/* Demo Quick Fill Buttons */}
                             <div className="pt-4 border-t border-slate-100 space-y-2">
-                                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">
-                                    পরীক্ষামূলক ডেমো লগইন:
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">
+                                    ১-ক্লিক পরীক্ষামূলক ডেমো লগইন:
                                 </p>
-                                <div className="grid grid-cols-1 gap-1.5 text-xs">
+                                <div className="grid grid-cols-1 gap-2 text-xs">
                                     <button
                                         type="button"
                                         onClick={() => applyDemo('admin@nagorik.gov.bd', 'password123')}
-                                        className="p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 text-left border border-slate-200 text-slate-700 flex items-center justify-between"
+                                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-left border border-slate-200 hover:border-emerald-300 text-slate-700 flex items-center justify-between transition-all"
                                     >
-                                        <span>সুপার অ্যাডমিন</span>
-                                        <span className="text-[10px] text-emerald-700 font-mono font-semibold">অটো-ফিল</span>
+                                        <div>
+                                            <span className="font-bold text-slate-900 block">সুপার অ্যাডমিনিস্ট্রেটর</span>
+                                            <span className="text-[11px] text-slate-500 font-mono">admin@nagorik.gov.bd</span>
+                                        </div>
+                                        <span className="text-[11px] text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md font-bold">অটো-ফিল</span>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => applyDemo('officer@barishal.gov.bd', 'password123')}
-                                        className="p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 text-left border border-slate-200 text-slate-700 flex items-center justify-between"
+                                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-left border border-slate-200 hover:border-emerald-300 text-slate-700 flex items-center justify-between transition-all"
                                     >
-                                        <span>সিভিল সার্জন (বরিশাল)</span>
-                                        <span className="text-[10px] text-emerald-700 font-mono font-semibold">অটো-ফিল</span>
+                                        <div>
+                                            <span className="font-bold text-slate-900 block">সিভিল সার্জন (বরিশাল)</span>
+                                            <span className="text-[11px] text-slate-500 font-mono">officer@barishal.gov.bd</span>
+                                        </div>
+                                        <span className="text-[11px] text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md font-bold">অটো-ফিল</span>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => applyDemo('officer@cumilla.gov.bd', 'password123')}
-                                        className="p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 text-left border border-slate-200 text-slate-700 flex items-center justify-between"
+                                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-left border border-slate-200 hover:border-emerald-300 text-slate-700 flex items-center justify-between transition-all"
                                     >
-                                        <span>নির্বাহী প্রকৌশলী (কুমিল্লা কুসিক)</span>
-                                        <span className="text-[10px] text-emerald-700 font-mono font-semibold">অটো-ফিল</span>
+                                        <div>
+                                            <span className="font-bold text-slate-900 block">নির্বাহী প্রকৌশলী (কুমিল্লা কুসিক)</span>
+                                            <span className="text-[11px] text-slate-500 font-mono">officer@cumilla.gov.bd</span>
+                                        </div>
+                                        <span className="text-[11px] text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md font-bold">অটো-ফিল</span>
                                     </button>
                                 </div>
                             </div>

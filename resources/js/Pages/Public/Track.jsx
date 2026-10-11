@@ -44,32 +44,35 @@ export default function Track({ initialTrackingId, complaint, searched }) {
 
     return (
         <PublicLayout>
-            <Head title="অভিযোগের অবস্থা ট্র্যাক করুন — নাগরিক সেবা পোর্টাল" />
+            <Head title="অভিযোগের অবস্থা ট্র্যাক করুন — ই-অভিযোগ বাক্স" />
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                 {/* Search Bar */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs mb-8">
-                    <h1 className="text-xl font-bold text-slate-900 mb-1">অভিযোগ ট্র্যাক করুন</h1>
-                    <p className="text-xs text-slate-500 mb-4">
-                        আপনার অভিযোগ দাখিলের পর প্রাপ্ত ট্র্যাকিং নম্বরটি প্রবেশ করিয়ে বর্তমান অবস্থা জানুন
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm mb-8">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">অভিযোগের লাইভ অবস্থা ট্র্যাক করুন</h1>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-500 mb-5">
+                        অভিযোগ দাখিলের সময় প্রাপ্ত অনন্য ট্র্যাকিং নম্বরটি প্রবেশ করিয়ে বর্তমান অগ্রগতি ও পদক্ষেপ জানুন
                     </p>
 
-                    <form onSubmit={handleSearch} className="flex gap-2">
+                    <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2.5">
                         <div className="relative flex-1">
                             <input
                                 type="text"
-                                placeholder="উদাহরণ: CT-BAR-2026-000101"
+                                placeholder="আপনার ট্র্যাকিং আইডি লিখুন (CT-XXXX-XXXX-XXXXXX)"
                                 value={trackingCode}
                                 onChange={(e) => setTrackingCode(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-300 rounded-xl py-3 pl-4 pr-10 text-sm font-mono focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                className="w-full bg-slate-50 border border-slate-300 rounded-2xl py-3.5 pl-4 pr-10 text-sm font-mono focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all"
                             />
                         </div>
                         <button
                             type="submit"
-                            className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-xs transition-colors shrink-0"
+                            className="px-7 py-3.5 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0"
                         >
                             <Search className="w-4 h-4" />
-                            <span>অনুসন্ধান</span>
+                            <span>অনুসন্ধান করুন</span>
                         </button>
                     </form>
                 </div>
@@ -97,11 +100,58 @@ export default function Track({ initialTrackingId, complaint, searched }) {
                                 {complaint.title}
                             </h2>
 
-                            <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
-                                {complaint.description}
-                            </p>
+                            {/* Department / Branch & Target Post Badges */}
+                            <div className="flex flex-wrap items-center gap-2 mb-4 text-xs">
+                                {complaint.category_bn && (
+                                    <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded-lg font-medium">
+                                        সেবা: {complaint.category_bn}
+                                    </span>
+                                )}
+                                {complaint.branch_name && (
+                                    <span className="px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200/80 rounded-lg font-medium">
+                                        শাখা/বিভাগ: {complaint.branch_name}
+                                    </span>
+                                )}
+                                {complaint.target_post && (
+                                    <span className="px-2.5 py-1 bg-purple-50 text-purple-800 border border-purple-200/80 rounded-lg font-medium">
+                                        পদবি: {complaint.target_post}
+                                    </span>
+                                )}
+                                {complaint.is_person_unknown && (
+                                    <span className="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200/80 rounded-lg font-medium">
+                                        ব্যক্তির পরিচয়: নাম অজ্ঞাত (শাখা প্রধানের কাছে প্রেরিত)
+                                    </span>
+                                )}
+                            </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                            {/* Structured Selected Problem Types */}
+                            {complaint.selected_issues && complaint.selected_issues.length > 0 && (
+                                <div className="mb-4 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70">
+                                    <p className="text-xs font-semibold text-slate-700 mb-2">নির্দিষ্ট সমস্যা ও কারণসমূহ:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {complaint.selected_issues.map((issue) => (
+                                            <span 
+                                                key={issue.id} 
+                                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-white text-slate-800 border border-slate-200 shadow-2xs"
+                                            >
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                {issue.name_bn}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {complaint.description && (
+                                <div className="mb-6">
+                                    <p className="text-xs font-semibold text-slate-700 mb-1">নাগরিকের বিস্তারিত বর্ণনা:</p>
+                                    <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                        {complaint.description}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-600 pt-3 border-t border-slate-100">
                                 <div className="flex items-start gap-2">
                                     <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                                     <div>

@@ -22,6 +22,24 @@ export default defineConfig({
             '@': path.resolve(__dirname, './resources/js'),
         },
     },
+    build: {
+        chunkSizeWarningLimit: 1200,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/@inertiajs')) {
+                        return 'vendor-react';
+                    }
+                    if (id.includes('node_modules/lucide-react')) {
+                        return 'vendor-icons';
+                    }
+                    if (id.includes('node_modules/leaflet')) {
+                        return 'vendor-leaflet';
+                    }
+                },
+            },
+        },
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

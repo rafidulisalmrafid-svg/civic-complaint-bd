@@ -2,23 +2,23 @@ import React from 'react';
 
 export default function StatsCard({ title, value, subtitle, icon: Icon, color = 'emerald' }) {
     const colorStyles = {
-        emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-        blue: 'bg-blue-50 text-blue-600 border-blue-100',
-        amber: 'bg-amber-50 text-amber-600 border-amber-100',
-        red: 'bg-red-50 text-red-600 border-red-100',
-        purple: 'bg-purple-50 text-purple-600 border-purple-100',
+        emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 ring-4 ring-emerald-50',
+        blue: 'bg-blue-50 text-blue-700 border-blue-200/80 ring-4 ring-blue-50',
+        amber: 'bg-amber-50 text-amber-700 border-amber-200/80 ring-4 ring-amber-50',
+        red: 'bg-red-50 text-red-700 border-red-200/80 ring-4 ring-red-50',
+        purple: 'bg-purple-50 text-purple-700 border-purple-200/80 ring-4 ring-purple-50',
     };
 
     return (
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-sm card-hover-lift">
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</p>
-                    <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mt-1">{value}</h3>
-                    {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{title}</p>
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 font-mono">{value}</h3>
+                    {subtitle && <p className="text-xs text-slate-500 mt-1 font-medium">{subtitle}</p>}
                 </div>
                 {Icon && (
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${colorStyles[color] || colorStyles.emerald}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-2xs ${colorStyles[color] || colorStyles.emerald}`}>
                         <Icon className="w-6 h-6" />
                     </div>
                 )}

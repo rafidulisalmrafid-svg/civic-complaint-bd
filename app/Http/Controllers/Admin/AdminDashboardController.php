@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class AdminDashboardController extends Controller
 {
@@ -23,89 +24,99 @@ class AdminDashboardController extends Controller
      */
     public function index()
     {
-        $now = Carbon::now();
-        $total = Complaint::count();
-        $submitted = Complaint::where('current_status', 'submitted')->count();
-        $underReview = Complaint::where('current_status', 'under_review')->count();
-        $investigating = Complaint::whereIn('current_status', ['investigation_started', 'action_taken'])->count();
-        $resolved = Complaint::whereIn('current_status', ['resolved', 'closed'])->count();
-        $overdue = Complaint::where('current_status', 'overdue')
-            ->orWhere(function ($q) use ($now) {
-                $q->whereNotIn('current_status', ['resolved', 'closed', 'rejected'])
-                  ->where('due_at', '<', $now);
-            })->count();
-        $escalated = Complaint::where('current_status', 'escalated')->count();
+        $cachedDashboard = Cache::remember('admin_dashboard_metrics', 30, function () {
+            $now = Carbon::now();
+            $total = Complaint::count();
+            $submitted = Complaint::where('current_status', 'submitted')->count();
+            $underReview = Complaint::where('current_status', 'under_review')->count();
+            $investigating = Complaint::whereIn('current_status', ['investigation_started', 'action_taken'])->count();
+            $resolved = Complaint::whereIn('current_status', ['resolved', 'closed'])->count();
+            $overdue = Complaint::where('current_status', 'overdue')
+                ->orWhere(function ($q) use ($now) {
+                    $q->whereNotIn('current_status', ['resolved', 'closed', 'rejected'])
+                      ->where('due_at', '<', $now);
+                })->count();
+            $escalated = Complaint::where('current_status', 'escalated')->count();
 
-        // 6-Month Trend Data
-        $monthlyTrend = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $monthStart = Carbon::now()->subMonths($i)->startOfMonth();
-            $monthEnd = Carbon::now()->subMonths($i)->endOfMonth();
-            $monthName = $monthStart->format('M Y');
+            // 6-Month Trend Data
+            $monthlyTrend = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $monthStart = Carbon::now()->subMonths($i)->startOfMonth();
+                $monthEnd = Carbon::now()->subMonths($i)->endOfMonth();
+                $monthName = $monthStart->format('M Y');
 
-            $submittedCount = Complaint::whereBetween('created_at', [$monthStart, $monthEnd])->count();
-            $resolvedCount = Complaint::whereBetween('resolved_at', [$monthStart, $monthEnd])->count();
+                $submittedCount = Complaint::whereBetween('created_at', [$monthStart, $monthEnd])->count();
+                $resolvedCount = Complaint::whereBetween('resolved_at', [$monthStart, $monthEnd])->count();
 
-            $monthlyTrend[] = [
-                'month' => $monthName,
-                'submitted' => $submittedCount,
-                'resolved' => $resolvedCount,
+                $monthlyTrend[] = [
+                    'month' => $monthName,
+                    'submitted' => $submittedCount,
+                    'resolved' => $resolvedCount,
+                ];
+            }
+
+            // Category distribution
+            $categoriesData = ComplaintCategory::withCount('complaints')
+                ->orderByDesc('complaints_count')
+                ->take(8)
+                ->get()
+                ->map(fn ($cat) => [
+                    'name' => $cat->name_bn,
+                    'count' => $cat->complaints_count,
+                ]);
+
+            // District distribution
+            $districtsData = District::withCount('complaints')
+                ->orderByDesc('complaints_count')
+                ->take(6)
+                ->get()
+                ->map(fn ($d) => [
+                    'name' => $d->name_bn,
+                    'count' => $d->complaints_count,
+                ]);
+
+            // Organization Performance
+            $organizationsData = Organization::where('status', 'active')
+                ->withCount([
+                    'complaints',
+                    'complaints as resolved_count' => fn ($q) => $q->whereIn('current_status', ['resolved', 'closed']),
+                ])
+                ->take(6)
+                ->get()
+                ->map(fn ($org) => [
+                    'name' => $org->name_bn,
+                    'total' => $org->complaints_count,
+                    'resolved' => $org->resolved_count,
+                    'rate' => $org->complaints_count > 0 ? round(($org->resolved_count / $org->complaints_count) * 100, 1) : 0,
+                ]);
+
+            return [
+                'metrics' => [
+                    'total' => $total,
+                    'submitted' => $submitted,
+                    'underReview' => $underReview,
+                    'investigating' => $investigating,
+                    'overdue' => $overdue,
+                    'escalated' => $escalated,
+                    'resolved' => $resolved,
+                    'resolutionRate' => $total > 0 ? round(($resolved / $total) * 100, 1) : 0,
+                ],
+                'monthlyTrend' => $monthlyTrend,
+                'categoriesData' => $categoriesData,
+                'districtsData' => $districtsData,
+                'organizationsData' => $organizationsData,
             ];
-        }
+        });
 
-        // Category distribution
-        $categoriesData = ComplaintCategory::withCount('complaints')
-            ->orderByDesc('complaints_count')
-            ->take(8)
-            ->get()
-            ->map(fn ($cat) => [
-                'name' => $cat->name_bn,
-                'count' => $cat->complaints_count,
-            ]);
-
-        // District distribution
-        $districtsData = District::withCount('complaints')
-            ->orderByDesc('complaints_count')
-            ->take(6)
-            ->get()
-            ->map(fn ($d) => [
-                'name' => $d->name_bn,
-                'count' => $d->complaints_count,
-            ]);
-
-        // Organization Performance
-        $organizationsData = Organization::where('status', 'active')
-            ->withCount([
-                'complaints',
-                'complaints as resolved_count' => fn ($q) => $q->whereIn('current_status', ['resolved', 'closed']),
-            ])
-            ->take(6)
-            ->get()
-            ->map(fn ($org) => [
-                'name' => $org->name_bn,
-                'total' => $org->complaints_count,
-                'resolved' => $org->resolved_count,
-                'rate' => $org->complaints_count > 0 ? round(($org->resolved_count / $org->complaints_count) * 100, 1) : 0,
-            ]);
-
-        // Recent Audit Activity Feed
+        // Recent Audit Activity Feed (always live)
         $recentAudits = AuditLog::latest()->take(8)->get();
 
         return Inertia::render('Admin/Dashboard', [
-            'metrics' => [
-                'total' => $total,
-                'submitted' => $submitted,
-                'underReview' => $underReview,
-                'investigating' => $investigating,
-                'overdue' => $overdue,
-                'escalated' => $escalated,
-                'resolved' => $resolved,
-                'resolutionRate' => $total > 0 ? round(($resolved / $total) * 100, 1) : 0,
-            ],
-            'monthlyTrend' => $monthlyTrend,
-            'categoriesData' => $categoriesData,
-            'districtsData' => $districtsData,
-            'organizationsData' => $organizationsData,
+            'metrics' => $cachedDashboard['metrics'],
+            'monthlyTrend' => $cachedDashboard['monthlyTrend'],
+            'categoriesData' => $cachedDashboard['categoriesData'],
+            'districtsData' => $cachedDashboard['districtsData'],
+            'organizationsData' => $cachedDashboard['organizationsData'],
             'recentAudits' => $recentAudits,
         ]);
     }

@@ -11,6 +11,7 @@ use App\Models\ComplaintFeedback;
 use App\Models\ComplaintStatusHistory;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -21,58 +22,65 @@ class PublicController extends Controller
      */
     public function home()
     {
-        $totalComplaints = Complaint::count();
-        $resolvedComplaints = Complaint::whereIn('current_status', ['resolved', 'closed'])->count();
-        $investigatingComplaints = Complaint::whereIn('current_status', ['investigation_started', 'action_taken', 'under_review'])->count();
-        $overdueComplaints = Complaint::where('current_status', 'overdue')
-            ->orWhere(function ($q) {
-                $q->whereNotIn('current_status', ['resolved', 'closed', 'rejected'])
-                  ->where('due_at', '<', Carbon::now());
-            })->count();
+        $data = Cache::remember('public_home_data', 45, function () {
+            $totalComplaints = Complaint::count();
+            $resolvedComplaints = Complaint::whereIn('current_status', ['resolved', 'closed'])->count();
+            $investigatingComplaints = Complaint::whereIn('current_status', ['investigation_started', 'action_taken', 'under_review'])->count();
+            $overdueComplaints = Complaint::where('current_status', 'overdue')
+                ->orWhere(function ($q) {
+                    $q->whereNotIn('current_status', ['resolved', 'closed', 'rejected'])
+                      ->where('due_at', '<', Carbon::now());
+                })->count();
 
-        $resolutionRate = $totalComplaints > 0 ? round(($resolvedComplaints / $totalComplaints) * 100, 1) : 0;
+            $resolutionRate = $totalComplaints > 0 ? round(($resolvedComplaints / $totalComplaints) * 100, 1) : 0;
 
-        // Categories with live complaint counts
-        $categories = ComplaintCategory::where('status', 'active')
-            ->withCount('complaints')
-            ->orderBy('display_order')
-            ->get();
+            // Categories with live complaint counts
+            $categories = ComplaintCategory::where('status', 'active')
+                ->withCount('complaints')
+                ->orderBy('display_order')
+                ->get()
+                ->toArray();
 
-        // Pilot district highlights
-        $pilotDistricts = District::whereIn('code', ['BARISHAL_DIST', 'CUMILLA_DIST'])
-            ->withCount('complaints')
-            ->with(['division'])
-            ->get();
+            // Pilot district highlights
+            $pilotDistricts = District::whereIn('code', ['BARISHAL_DIST', 'CUMILLA_DIST'])
+                ->withCount('complaints')
+                ->with(['division'])
+                ->get()
+                ->toArray();
 
-        // Recent resolved cases for public trust (strictly aggregate/anonymized)
-        $recentResolved = Complaint::whereIn('current_status', ['resolved', 'action_taken'])
-            ->with(['category', 'district', 'upazila'])
-            ->latest('updated_at')
-            ->take(4)
-            ->get()
-            ->map(fn ($c) => [
-                'tracking_id' => $c->tracking_id,
-                'title' => $c->title,
-                'category_name' => $c->category?->name_bn,
-                'district_name' => $c->district?->name_bn,
-                'upazila_name' => $c->upazila?->name_bn,
-                'status_label' => $c->status_label_bn,
-                'resolved_time' => $c->resolved_at?->diffForHumans() ?? $c->updated_at->diffForHumans(),
-            ]);
+            // Recent resolved cases for public trust (strictly aggregate/anonymized)
+            $recentResolved = Complaint::whereIn('current_status', ['resolved', 'action_taken'])
+                ->with(['category', 'district', 'upazila'])
+                ->latest('updated_at')
+                ->take(4)
+                ->get()
+                ->map(fn ($c) => [
+                    'tracking_id' => $c->tracking_id,
+                    'title' => $c->title,
+                    'category_name' => $c->category?->name_bn,
+                    'district_name' => $c->district?->name_bn,
+                    'upazila_name' => $c->upazila?->name_bn,
+                    'status_label' => $c->status_label_bn,
+                    'resolved_time' => $c->resolved_at?->diffForHumans() ?? $c->updated_at->diffForHumans(),
+                ])
+                ->toArray();
 
-        return Inertia::render('Public/Home', [
-            'stats' => [
-                'total' => $totalComplaints,
-                'resolved' => $resolvedComplaints,
-                'investigating' => $investigatingComplaints,
-                'overdue' => $overdueComplaints,
-                'resolutionRate' => $resolutionRate,
-                'averageResolutionDays' => 4.2, // Computed standard
-            ],
-            'categories' => $categories,
-            'pilotDistricts' => $pilotDistricts,
-            'recentResolved' => $recentResolved,
-        ]);
+            return [
+                'stats' => [
+                    'total' => $totalComplaints,
+                    'resolved' => $resolvedComplaints,
+                    'investigating' => $investigatingComplaints,
+                    'overdue' => $overdueComplaints,
+                    'resolutionRate' => $resolutionRate,
+                    'averageResolutionDays' => 4.2,
+                ],
+                'categories' => $categories,
+                'pilotDistricts' => $pilotDistricts,
+                'recentResolved' => $recentResolved,
+            ];
+        });
+
+        return Inertia::render('Public/Home', $data);
     }
 
     /**
@@ -95,6 +103,9 @@ class PublicController extends Controller
                     'ward',
                     'organization',
                     'office',
+                    'branch',
+                    'targetPost',
+                    'selectedIssues.problemType',
                     'statusHistories' => function ($q) {
                         $q->where('is_public_to_citizen', true)->orderBy('created_at', 'asc');
                     },
@@ -118,6 +129,15 @@ class PublicController extends Controller
                     'complainant_name' => $isOwner ? $complaintRecord->complainant_name : ($isSensitive ? 'গোপন নাগরিক' : mb_substr($complaintRecord->complainant_name, 0, 1) . '***'),
                     'category_bn' => $complaintRecord->category?->name_bn,
                     'subcategory_bn' => $complaintRecord->subcategory?->name_bn,
+                    'branch_name' => $complaintRecord->branch?->name_bn,
+                    'target_post' => $complaintRecord->targetPost?->name_bn,
+                    'is_person_unknown' => (bool) $complaintRecord->is_person_unknown,
+                    'selected_issues_summary' => $complaintRecord->selected_issues_summary,
+                    'selected_issues' => $complaintRecord->selectedIssues->map(fn ($si) => [
+                        'id' => $si->id,
+                        'name_bn' => $si->problemType?->name_bn ?? $si->issue_name_bn,
+                        'group' => $si->problemType?->issue_group,
+                    ]),
                     'priority' => $complaintRecord->priority,
                     'priority_bn' => $complaintRecord->priority_label_bn,
                     'current_status' => $complaintRecord->current_status,

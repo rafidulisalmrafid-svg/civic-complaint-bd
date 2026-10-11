@@ -13,6 +13,9 @@ use App\Http\Controllers\Admin\OfficerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RoutingSlaController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\ProblemTypeController;
+use App\Http\Controllers\AiAssistantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,9 +42,19 @@ Route::prefix('api/geo')->name('api.geo.')->group(function () {
     Route::get('/local-governments-by-district/{districtId}', [ComplaintSubmissionController::class, 'getLocalGovernmentsByDistrict'])->name('local-governments-district');
     Route::get('/wards/{localGovernmentId}', [ComplaintSubmissionController::class, 'getWards'])->name('wards');
     Route::get('/areas/{wardId}', [ComplaintSubmissionController::class, 'getAreas'])->name('areas');
-    Route::get('/post-offices/{upazilaId}', [ComplaintSubmissionController::class, 'getPostOffices'])->name('post-offices');
     Route::get('/offices', [ComplaintSubmissionController::class, 'getOffices'])->name('offices');
+    Route::get('/offices-by-service', [ComplaintSubmissionController::class, 'getOfficesByService'])->name('offices-by-service');
+    Route::get('/branches/{officeId}', [ComplaintSubmissionController::class, 'getBranches'])->name('branches');
+    Route::get('/problem-types/{categoryId}', [ComplaintSubmissionController::class, 'getProblemTypes'])->name('problem-types');
     Route::get('/officers/{officeId}', [ComplaintSubmissionController::class, 'getOfficers'])->name('officers');
+});
+
+// AI Complaint Assistant Endpoints
+Route::prefix('api/ai')->name('api.ai.')->group(function () {
+    Route::get('/initial-data', [AiAssistantController::class, 'initialData'])->name('initial-data');
+    Route::post('/analyze', [AiAssistantController::class, 'analyze'])->name('analyze');
+    Route::post('/generate-formal-letter', [AiAssistantController::class, 'generateFormalLetter'])->name('generate-letter');
+    Route::post('/submit-complaint', [AiAssistantController::class, 'submitComplaint'])->name('submit');
 });
 
 /*
@@ -127,6 +140,18 @@ Route::middleware(['auth', 'role:main_admin'])->prefix('admin')->name('admin.')-
     Route::get('/rules', [RoutingSlaController::class, 'index'])->name('rules');
     Route::post('/rules/routing', [RoutingSlaController::class, 'storeRoutingRule'])->name('rules.routing');
     Route::post('/rules/sla/{id}', [RoutingSlaController::class, 'updateSlaRule'])->name('rules.sla');
+
+    // Posts / Designations (সরকারি পদবি ডিরেক্টরি)
+    Route::get('/posts', [PostController::class, 'index'])->name('posts');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    // Complaint Problem Types (নির্দিষ্ট সমস্যা ক্যাটালগ)
+    Route::get('/problem-types', [ProblemTypeController::class, 'index'])->name('problem-types');
+    Route::post('/problem-types', [ProblemTypeController::class, 'store'])->name('problem-types.store');
+    Route::put('/problem-types/{problemType}', [ProblemTypeController::class, 'update'])->name('problem-types.update');
+    Route::delete('/problem-types/{problemType}', [ProblemTypeController::class, 'destroy'])->name('problem-types.destroy');
 
     // Audit Logs
     Route::get('/audit', [AuditLogController::class, 'index'])->name('audit');

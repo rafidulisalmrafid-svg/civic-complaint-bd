@@ -40,6 +40,11 @@ class ComplaintCategory extends Model
         return $this->hasMany(CustomField::class)->orderBy('display_order');
     }
 
+    public function problemTypes()
+    {
+        return $this->hasMany(ComplaintProblemType::class, 'category_id')->orderBy('display_order');
+    }
+
     public function ministry()
     {
         return $this->belongsTo(Organization::class, 'ministry_id');

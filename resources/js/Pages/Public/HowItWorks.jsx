@@ -6,7 +6,7 @@ import { Send, FileSearch, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-
 export default function HowItWorks() {
     return (
         <PublicLayout>
-            <Head title="কীভাবে কাজ করে — নাগরিক সেবা প্ল্যাটফর্ম" />
+            <Head title="কীভাবে কাজ করে — ই-অভিযোগ বাক্স" />
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="text-center mb-12">
@@ -14,9 +14,12 @@ export default function HowItWorks() {
                         সেবা প্রক্রিয়া
                     </span>
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
-                        নাগরিক অভিযোগ প্রতিকার কীভাবে কাজ করে?
+                        ই-অভিযোগ বাক্স কীভাবে কাজ করে?
                     </h1>
-                    <p className="text-sm text-slate-500 mt-2 max-w-lg mx-auto">
+                    <p className="text-sm sm:text-base text-emerald-800 font-bold mt-2 max-w-lg mx-auto">
+                        আপনার সমস্যা, ডিজিটাল সমাধান।
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1 max-w-lg mx-auto">
                         নাগরিকের কণ্ঠস্বর সরাসরি দায়িত্বশীল কর্তৃপক্ষের কাছে পৌঁছে দেওয়ার ডিজিটাল রূপরেখা
                     </p>
                 </div>

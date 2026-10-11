@@ -29,7 +29,7 @@ class TrackingIdGenerator
         for ($i = 0; $i < $maxAttempts; $i++) {
             $count = Complaint::whereYear('created_at', $year)->count() + 1 + $i;
             $sequence = str_pad((string) $count, 6, '0', STR_PAD_LEFT);
-            $trackingId = "CT-{$divPrefix}-{$year}-{$sequence}";
+            $trackingId = "COM-{$year}-{$sequence}";
 
             if (! Complaint::where('tracking_id', $trackingId)->exists()) {
                 return $trackingId;
@@ -37,7 +37,6 @@ class TrackingIdGenerator
         }
 
         // In extremely rare edge cases, append random suffix
-        $randomSuffix = strtoupper(Str::random(3));
-        return "CT-{$divPrefix}-{$year}-" . str_pad((string) random_int(1000, 999999), 6, '0', STR_PAD_LEFT);
+        return "COM-{$year}-" . str_pad((string) random_int(1000, 999999), 6, '0', STR_PAD_LEFT);
     }
 }

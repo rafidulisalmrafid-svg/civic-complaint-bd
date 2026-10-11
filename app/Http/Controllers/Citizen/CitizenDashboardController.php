@@ -32,11 +32,20 @@ class CitizenDashboardController extends Controller
 
         $complaints = $query->paginate(10)->withQueryString();
 
+        $statusCounts = Complaint::where('user_id', $user->id)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN current_status NOT IN ('resolved', 'closed', 'rejected') THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN current_status IN ('resolved', 'closed') THEN 1 ELSE 0 END) as resolved,
+                SUM(CASE WHEN current_status IN ('investigation_started', 'action_taken') THEN 1 ELSE 0 END) as under_investigation
+            ")
+            ->first();
+
         $stats = [
-            'total' => Complaint::where('user_id', $user->id)->count(),
-            'active' => Complaint::where('user_id', $user->id)->whereNotIn('current_status', ['resolved', 'closed', 'rejected'])->count(),
-            'resolved' => Complaint::where('user_id', $user->id)->whereIn('current_status', ['resolved', 'closed'])->count(),
-            'under_investigation' => Complaint::where('user_id', $user->id)->whereIn('current_status', ['investigation_started', 'action_taken'])->count(),
+            'total' => (int) ($statusCounts->total ?? 0),
+            'active' => (int) ($statusCounts->active ?? 0),
+            'resolved' => (int) ($statusCounts->resolved ?? 0),
+            'under_investigation' => (int) ($statusCounts->under_investigation ?? 0),
         ];
 
         return Inertia::render('Citizen/Dashboard', [

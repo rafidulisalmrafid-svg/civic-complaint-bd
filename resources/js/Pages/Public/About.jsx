@@ -6,7 +6,7 @@ import { Shield, Target, Users, MapPin, Building2, CheckCircle2 } from 'lucide-r
 export default function About() {
     return (
         <PublicLayout>
-            <Head title="প্ল্যাটফর্ম পরিচিতি — নাগরিক সেবা ও অভিযোগ প্রতিকার" />
+            <Head title="প্ল্যাটফর্ম পরিচিতি — ই-অভিযোগ বাক্স" />
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
                 <div className="text-center">
@@ -14,9 +14,12 @@ export default function About() {
                         আমাদের লক্ষ্য ও দর্শন
                     </span>
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
-                        নাগরিক সেবা ও অভিযোগ প্রতিকার প্ল্যাটফর্ম
+                        ই-অভিযোগ বাক্স
                     </h1>
-                    <p className="text-sm text-slate-600 mt-2 max-w-xl mx-auto">
+                    <p className="text-sm sm:text-base text-emerald-800 font-bold mt-2 max-w-xl mx-auto">
+                        আপনার সমস্যা, ডিজিটাল সমাধান।
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1 max-w-xl mx-auto">
                         একটি জবাবদিহিতামূলক, গতিশীল ও জনবান্ধব আধুনিক প্রশাসনিক সেবামুখী রূপরেখা
                     </p>
                 </div>

@@ -21,15 +21,17 @@ export default function StatusBadge({ status, className = '' }) {
     const config = statusConfig[status] || {
         label: status || 'অনির্ধারিত',
         bg: 'bg-slate-50',
-        text: 'text-slate-600',
+        text: 'text-slate-700',
         border: 'border-slate-200',
         dot: 'bg-slate-400'
     };
 
+    const isLive = ['investigation_started', 'under_review', 'escalated', 'action_taken'].includes(status);
+
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.bg} ${config.text} ${config.border} ${className}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></span>
-            {config.label}
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs ${config.bg} ${config.text} ${config.border} ${className}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${config.dot} ${isLive ? 'animate-pulse' : ''}`}></span>
+            <span>{config.label}</span>
         </span>
     );
 }

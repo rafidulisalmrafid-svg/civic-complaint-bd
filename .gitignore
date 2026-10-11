@@ -28,3 +28,6 @@ Thumbs.db
 cloudflared.exe
 .vercel
 .vercel
+
+scratch/
+scratch_page.json

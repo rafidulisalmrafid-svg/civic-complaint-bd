@@ -37,6 +37,10 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        if ($user && $user->officerProfile) {
+            $user->officerProfile->loadMissing(['organization', 'office', 'district', 'upazila']);
+        }
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
