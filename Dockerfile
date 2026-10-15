@@ -67,6 +67,9 @@ COPY . .
 # Copy pre-compiled Vite bundles from stage 1
 COPY --from=node_builder /app/public/build ./public/build
 
+# Ensure .env exists in container
+RUN cp .env.example .env || true
+
 # Install production PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
