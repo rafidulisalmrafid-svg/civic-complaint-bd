@@ -12,11 +12,13 @@ class ComplaintRoutingService
 {
     /**
      * Resolve target Organization, Office, Branch, and Responsible Officer for a complaint
-     * following the 4-tier progressive hierarchy:
-     * 1. Direct Person / Officer (if citizen selected a specific officer)
-     * 2. Branch / Department Responsible Officer (if person unknown or department-level issue)
-     * 3. Office Focal Point / Head Officer
-     * 4. District Complaint Officer (if no office focal found)
+     * with STRICT Conflict-of-Interest prevention and administrative escalation hierarchy:
+     *
+     * 1. Conflict-of-Interest Check: If complaint names a specific officer ($specificOfficerId),
+     *    that officer is the SUBJECT of the grievance. They CANNOT be assigned to investigate themselves!
+     * 2. Branch / Department Head Officer (excluding the targeted officer)
+     * 3. Office Focal Point / Head Officer (excluding the targeted officer)
+     * 4. District Complaint Officer (neutral administrative investigator)
      */
     public static function resolveRoute(
         int $categoryId,
@@ -30,25 +32,22 @@ class ComplaintRoutingService
         bool $isPersonUnknown = false
     ): array {
         $assignedOfficerId = null;
+        $conflictOfInterest = false;
+        $conflictNote = null;
 
-        // Tier 1: Direct Person-Level Assignment
+        // If citizen targeted a specific officer, trigger CONFLICT OF INTEREST guard
         if (! $isPersonUnknown && $specificOfficerId) {
-            $officer = OfficerProfile::where('id', $specificOfficerId)->where('status', 'active')->first();
-            if ($officer) {
-                return [
-                    'organization_id' => $officer->organization_id,
-                    'office_id' => $officer->office_id,
-                    'office_branch_id' => $officer->office_branch_id ?? $branchId,
-                    'assigned_officer_id' => $officer->id,
-                    'routing_tier' => 'tier_1_person',
-                ];
-            }
+            $conflictOfInterest = true;
+            $targetedOfficer = OfficerProfile::find($specificOfficerId);
+            $targetedName = $targetedOfficer ? "{$targetedOfficer->name_bn} ({$targetedOfficer->designation_bn})" : "আইডি #{$specificOfficerId}";
+            $conflictNote = "স্বার্থের সংঘাত রোধ: অভিযোগটি কর্মকর্তা {$targetedName}-এর বিরুদ্ধে উত্থাপিত হওয়ায় তাঁকে তদন্তভার থেকে বাদ দিয়ে নিরপেক্ষ ঊর্ধ্বতন কর্তৃপক্ষের কাছে ন্যস্ত করা হয়েছে।";
         }
 
-        // Tier 2: Branch / Department Responsible Officer
+        // Tier 1: Branch / Department Responsible Officer (excluding targeted officer)
         if ($branchId) {
             $branchOfficer = OfficerProfile::where('office_branch_id', $branchId)
                 ->where('status', 'active')
+                ->when($specificOfficerId, fn($q) => $q->where('id', '!=', $specificOfficerId))
                 ->orderByDesc('is_office_focal_point')
                 ->first();
 
@@ -58,19 +57,25 @@ class ComplaintRoutingService
                     'office_id' => $branchOfficer->office_id,
                     'office_branch_id' => $branchId,
                     'assigned_officer_id' => $branchOfficer->id,
-                    'routing_tier' => 'tier_2_branch',
+                    'routing_tier' => 'tier_branch_neutral',
+                    'conflict_of_interest' => $conflictOfInterest,
+                    'conflict_note' => $conflictNote,
                 ];
             }
         }
 
-        // Tier 3: Office Focal Point / Head Officer
+        // Tier 2: Office Focal Point / Head Officer (excluding targeted officer)
         if ($officeId) {
             $office = Office::find($officeId);
             $officeFocal = OfficerProfile::where('office_id', $officeId)
                 ->where('status', 'active')
+                ->when($specificOfficerId, fn($q) => $q->where('id', '!=', $specificOfficerId))
                 ->where('is_office_focal_point', true)
                 ->first()
-                ?? OfficerProfile::where('office_id', $officeId)->where('status', 'active')->first();
+                ?? OfficerProfile::where('office_id', $officeId)
+                    ->where('status', 'active')
+                    ->when($specificOfficerId, fn($q) => $q->where('id', '!=', $specificOfficerId))
+                    ->first();
 
             if ($officeFocal) {
                 return [
@@ -78,7 +83,9 @@ class ComplaintRoutingService
                     'office_id' => $officeId,
                     'office_branch_id' => $branchId,
                     'assigned_officer_id' => $officeFocal->id,
-                    'routing_tier' => 'tier_3_office_focal',
+                    'routing_tier' => 'tier_office_focal',
+                    'conflict_of_interest' => $conflictOfInterest,
+                    'conflict_note' => $conflictNote,
                 ];
             }
 
@@ -88,62 +95,51 @@ class ComplaintRoutingService
                     'office_id' => $officeId,
                     'office_branch_id' => $branchId,
                     'assigned_officer_id' => null,
-                    'routing_tier' => 'tier_3_office_queue',
+                    'routing_tier' => 'tier_office_queue',
+                    'conflict_of_interest' => $conflictOfInterest,
+                    'conflict_note' => $conflictNote,
                 ];
             }
         }
 
-        // Tier 4: District Complaint Officer
+        // Tier 3: District Complaint Officer (Neutral District Investigator)
         if ($districtId) {
             $districtOfficer = OfficerProfile::where('district_id', $districtId)
                 ->where('is_district_complaint_officer', true)
                 ->where('status', 'active')
-                ->first();
+                ->when($specificOfficerId, fn($q) => $q->where('id', '!=', $specificOfficerId))
+                ->first()
+                ?? OfficerProfile::where('district_id', $districtId)
+                    ->where('status', 'active')
+                    ->when($specificOfficerId, fn($q) => $q->where('id', '!=', $specificOfficerId))
+                    ->first();
 
             if ($districtOfficer) {
                 return [
                     'organization_id' => $districtOfficer->organization_id,
                     'office_id' => $districtOfficer->office_id,
-                    'office_branch_id' => $branchId,
+                    'office_branch_id' => null,
                     'assigned_officer_id' => $districtOfficer->id,
-                    'routing_tier' => 'tier_4_district_complaint_officer',
+                    'routing_tier' => 'tier_district_complaint_officer',
+                    'conflict_of_interest' => $conflictOfInterest,
+                    'conflict_note' => $conflictNote,
                 ];
             }
         }
 
-        // Fallback: Dynamic Routing Rules
-        $rules = RoutingRule::where('is_active', true)
-            ->where(function ($q) use ($categoryId) {
-                $q->whereNull('category_id')->orWhere('category_id', $categoryId);
-            })
-            ->where(function ($q) use ($districtId) {
-                $q->whereNull('district_id')->orWhere('district_id', $districtId);
-            })
-            ->where(function ($q) use ($upazilaId) {
-                $q->whereNull('upazila_id')->orWhere('upazila_id', $upazilaId);
-            })
-            ->orderByRaw('CASE WHEN upazila_id IS NOT NULL THEN 1 ELSE 2 END')
-            ->orderByRaw('CASE WHEN district_id IS NOT NULL THEN 1 ELSE 2 END')
+        // Fallback: System Default Active Officer
+        $defaultOfficer = OfficerProfile::where('status', 'active')
+            ->when($specificOfficerId, fn($q) => $q->where('id', '!=', $specificOfficerId))
             ->first();
 
-        if ($rules) {
-            return [
-                'organization_id' => $rules->target_organization_id,
-                'office_id' => $rules->target_office_id,
-                'office_branch_id' => $branchId,
-                'assigned_officer_id' => null,
-                'routing_tier' => 'fallback_routing_rule',
-            ];
-        }
-
-        // Final Category Default Fallback
-        $category = ComplaintCategory::find($categoryId);
         return [
-            'organization_id' => $category?->default_organization_id,
-            'office_id' => $officeId,
-            'office_branch_id' => $branchId,
-            'assigned_officer_id' => null,
-            'routing_tier' => 'fallback_category_default',
+            'organization_id' => $defaultOfficer?->organization_id,
+            'office_id' => $defaultOfficer?->office_id,
+            'office_branch_id' => null,
+            'assigned_officer_id' => $defaultOfficer?->id,
+            'routing_tier' => 'fallback_general_queue',
+            'conflict_of_interest' => $conflictOfInterest,
+            'conflict_note' => $conflictNote,
         ];
     }
 }

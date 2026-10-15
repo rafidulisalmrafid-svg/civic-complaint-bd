@@ -273,4 +273,108 @@ button:active, a:active {
     }
 }
 
+/* ========================================================
+   BANGLADESH CULTURAL & HERITAGE DESIGN SYSTEM UTILITIES
+   ======================================================== */
+
+/* Jamdani & Alpana Geometric Pattern Motifs */
+.bd-pattern-subtle {
+    background-image: 
+        radial-gradient(rgba(5, 150, 105, 0.08) 1.5px, transparent 1.5px),
+        radial-gradient(rgba(220, 38, 38, 0.05) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
+    background-position: 0 0, 14px 14px;
+}
+
+.bd-pattern-dark {
+    background-image: 
+        radial-gradient(rgba(52, 211, 153, 0.12) 1.5px, transparent 1.5px),
+        radial-gradient(rgba(248, 113, 113, 0.08) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
+    background-position: 0 0, 14px 14px;
+}
+
+/* Ornamental Jamdani Floral/Geometric Border Ribbon */
+.bd-motif-border {
+    background: repeating-linear-gradient(
+        90deg,
+        #065F46 0px,
+        #065F46 16px,
+        #D97706 16px,
+        #D97706 20px,
+        #DC2626 20px,
+        #DC2626 32px,
+        #059669 32px,
+        #059669 48px
+    );
+    height: 4px;
+    width: 100%;
+}
+
+/* Cultural Badge and Glow */
+.bd-card-glow {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bd-card-glow::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(245, 158, 11, 0.3), rgba(220, 38, 38, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* Flag Emblem Sun Glow */
+.bd-sun-glow {
+    box-shadow: 0 0 25px rgba(220, 38, 38, 0.35);
+}
+
+/* ========================================================
+   ROBOTIC MESSENGER (BARTA-BAHAK) ANIMATIONS
+   ======================================================== */
+@keyframes robotHover {
+    0%, 100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-8px) scale(1.02);
+    }
+}
+
+.animate-robot-hover {
+    animation: robotHover 3.6s ease-in-out infinite;
+    will-change: transform;
+}
+
+@keyframes hologramPulse {
+    0%, 100% {
+        opacity: 0.85;
+        filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.4));
+    }
+    50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.8));
+    }
+}
+
+.animate-hologram {
+    animation: hologramPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes antennaBlink {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.animate-antenna-blink {
+    animation: antennaBlink 1.5s infinite;
+}
+
+
+
 

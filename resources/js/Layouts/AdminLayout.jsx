@@ -17,7 +17,9 @@ import {
     X,
     Shield,
     ExternalLink,
-    FileText
+    FileText,
+    FileCheck2,
+    BrainCircuit
 } from 'lucide-react';
 
 export default function AdminLayout({ children, title, subtitle }) {
@@ -31,7 +33,9 @@ export default function AdminLayout({ children, title, subtitle }) {
 
     const navItems = [
         { name: 'ড্যাশবোর্ড', href: '/admin', icon: LayoutDashboard },
+        { name: 'ডকুমেন্ট রিভিউ কিউ', href: '/admin/documents', icon: FileCheck2 },
         { name: 'মানচিত্র বিশ্লেষণ', href: '/admin/map', icon: MapPin },
+        { name: 'AI ইভ্যালুয়েশন', href: '/admin/ai-eval', icon: BrainCircuit },
         { name: 'স্থান ও কাঠামো', href: '/admin/geography', icon: FolderTree },
         { name: 'দপ্তর ও সংস্থা', href: '/admin/organizations', icon: Building2 },
         { name: 'কর্মকর্তা তালিকা', href: '/admin/officers', icon: Users },

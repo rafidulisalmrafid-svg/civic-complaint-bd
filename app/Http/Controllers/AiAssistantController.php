@@ -22,6 +22,7 @@ use App\Models\AuditLog;
 use App\Services\TrackingIdGenerator;
 use App\Services\ComplaintRoutingService;
 use App\Services\SlaCalculationService;
+use App\Services\DocumentVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -650,13 +651,27 @@ class AiAssistantController extends Controller
                 'current_status' => 'submitted',
                 'selected_issues_summary' => 'AI স্মার্ট সহকারীর মাধ্যমে আনুষ্ঠানিক অভিযোগপত্র দাখিল',
                 'due_at' => $dueAt,
+                'conflict_of_interest_detected' => $routed['conflict_of_interest'] ?? false,
+                'conflict_resolution_note' => $routed['conflict_note'] ?? null,
+                'routing_dispatch_time' => now(),
+                'delivery_status' => 'delivered',
+                'formal_letter_text' => $request->formal_letter,
             ]);
 
-            // Store uploaded evidence files if any
+            // Store uploaded evidence files with AI Document Verification Pipeline
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     if ($file && $file->isValid()) {
                         $path = $file->store('evidence', 'public');
+
+                        // Run multi-stage AI document verification
+                        $verification = DocumentVerificationService::verifyDocument($file, [
+                            'complainant_name' => $name,
+                            'office_name' => $office->name_bn,
+                            'incident_date' => date('d/m/Y'),
+                            'title' => $complaint->title,
+                        ]);
+
                         ComplaintAttachment::create([
                             'complaint_id' => $complaint->id,
                             'file_path' => $path,
@@ -666,6 +681,17 @@ class AiAssistantController extends Controller
                             'is_camera_capture' => str_starts_with($file->getClientMimeType() ?: '', 'image/'),
                             'is_private' => true,
                             'uploaded_by_user_id' => $user->id,
+                            'verification_status' => $verification['verification_status'],
+                            'confidence_score' => $verification['confidence_score'],
+                            'document_type' => $verification['document_type'],
+                            'ocr_extracted_text' => $verification['ocr_extracted_text'],
+                            'extracted_entities' => $verification['extracted_entities'],
+                            'file_hash' => $verification['file_hash'],
+                            'is_duplicate' => $verification['is_duplicate'],
+                            'duplicate_of_attachment_id' => $verification['duplicate_of_attachment_id'],
+                            'analysis_flags' => $verification['analysis_flags'],
+                            'verification_method' => $verification['verification_method'],
+                            'admin_review_status' => $verification['admin_review_status'],
                         ]);
                     }
                 }
@@ -689,6 +715,10 @@ class AiAssistantController extends Controller
                                 'is_camera_capture' => false,
                                 'is_private' => false,
                                 'uploaded_by_user_id' => $user->id,
+                                'verification_status' => 'unverifiable',
+                                'confidence_score' => 40,
+                                'document_type' => 'web_link',
+                                'admin_review_status' => 'pending',
                             ]);
                         }
                     }
@@ -701,6 +731,7 @@ class AiAssistantController extends Controller
                 'category' => $category->name_bn,
                 'channel' => 'ai_complaint_assistant_formal',
                 'priority' => $priority,
+                'conflict_of_interest' => $routed['conflict_of_interest'] ?? false,
                 'attachments_count' => $complaint->attachments()->count(),
             ], $user);
 
@@ -728,6 +759,8 @@ class AiAssistantController extends Controller
                 'submitted_at' => now()->format('d/m/Y h:i A'),
                 'due_at' => $dueAt ? $dueAt->format('d/m/Y') : null,
                 'status_label' => 'গৃহীত ও প্রক্রিয়াধীন',
+                'conflict_of_interest' => $routed['conflict_of_interest'] ?? false,
+                'conflict_note' => $routed['conflict_note'] ?? null,
                 'track_url' => route('complaint.track', ['id' => $trackingId]),
                 'receipt' => [
                     'tracking_id' => $trackingId,
@@ -743,5 +776,126 @@ class AiAssistantController extends Controller
                 'message' => 'আপনার আনুষ্ঠানিক অভিযোগ সফলভাবে দাখিল হয়েছে।'
             ]);
         });
+    }
+
+    /**
+     * Standalone Document Verification Pre-check (for real-time feedback during upload)
+     */
+    public function verifyDocument(Request $request)
+    {
+        $request->validate([
+            'document' => 'required|file|max:102400', // 100MB max
+            'complainant_name' => 'nullable|string|max:100',
+            'office_name' => 'nullable|string|max:200',
+        ]);
+
+        $file = $request->file('document');
+        $context = [
+            'complainant_name' => $request->input('complainant_name', ''),
+            'office_name' => $request->input('office_name', ''),
+            'incident_date' => date('d/m/Y'),
+        ];
+
+        $report = DocumentVerificationService::verifyDocument($file, $context);
+
+        return response()->json([
+            'success' => true,
+            'report' => $report,
+        ]);
+    }
+
+    /**
+     * AI-Powered Conversational Tracking Status Query (Section 13)
+     * e.g., "আমার অভিযোগ CGR-2026-000123-এর অবস্থা কী?"
+     */
+    public function trackStatus(Request $request)
+    {
+        $input = trim($request->input('query') ?: ($request->input('tracking_id') ?: ''));
+
+        if (empty($input)) {
+            return response()->json([
+                'success' => false,
+                'reply' => 'অনুগ্রহ করে আপনার অভিযোগের ট্র্যাকিং আইডি (যেমন: CGR-2026-000123) প্রদান করুন।',
+            ], 422);
+        }
+
+        // Extract Tracking ID from user sentence using regex pattern
+        $trackingId = null;
+        if (preg_match('/(CGR|COM|CT)[A-Z0-9\-_]+/i', $input, $matches)) {
+            $trackingId = rtrim(strtoupper($matches[0]), "-_.,:; \t\n\r\0\x0B");
+        } else {
+            $trackingId = rtrim(strtoupper(trim($input)), "-_.,:; \t\n\r\0\x0B");
+        }
+
+        $complaint = Complaint::where('tracking_id', $trackingId)
+            ->with(['category', 'office', 'assignedOfficer', 'statusHistories' => fn($q) => $q->where('is_public_to_citizen', true)->latest(), 'actions' => fn($q) => $q->latest()])
+            ->first();
+
+        if (! $complaint) {
+            return response()->json([
+                'success' => false,
+                'tracking_id' => $trackingId,
+                'reply' => "দুঃখিত, '{$trackingId}' নম্বরের কোনো অভিযোগ সিস্টেমে পাওয়া যায়নি। অনুগ্রহ করে ট্র্যাকিং আইডিটি সঠিক কি না তা পুনরায় যাচাই করুন।",
+            ]);
+        }
+
+        // Generate natural Bengali explanation
+        $statusLabels = [
+            'submitted' => 'দাখিলকৃত (দপ্তরে গ্রহণের অপেক্ষায়)',
+            'under_review' => 'পর্যালোচনাধীন (প্রাথমিক যাচাই চলছে)',
+            'assigned' => 'কর্মকর্তা নির্ধারিত (তদন্তের দায়িত্বে কর্মকর্তা নিয়োজিত)',
+            'forwarded' => 'অগ্রায়িত (সংশ্লিষ্ট বিশেষ শাখায় প্রেরিত)',
+            'investigation_started' => 'তদন্ত শুরু হয়েছে (মাঠপর্যায়ে অনুসন্ধান চলমান)',
+            'action_taken' => 'ব্যবস্থা গ্রহণ করা হয়েছে (সমাধানের প্রক্রিয়া চূড়ান্ত পর্যায়ে)',
+            'resolved' => 'নিষ্পত্তিকৃত (সফলভাবে সমাধান সম্পন্ন)',
+            'closed' => 'বন্ধকৃত',
+            'reopened' => 'পুনরায় পর্যালোচনাধীন',
+            'rejected' => 'বাতিলকৃত',
+        ];
+
+        $statusText = $statusLabels[$complaint->current_status] ?? $complaint->current_status;
+        $officeName = $complaint->office?->name_bn ?: 'সংশ্লিষ্ট দপ্তর';
+        $assignedName = $complaint->assignedOfficer?->name_bn;
+        $assignedPost = $complaint->assignedOfficer?->designation_bn;
+
+        $reply = "আপনার অভিযোগটির (আইডি: {$complaint->tracking_id}) বর্তমান অবস্থা নিম্নরূপ:\n\n";
+        $reply .= "• বর্তমান স্ট্যাটাস: {$statusText}\n";
+        $reply .= "• দায়িত্বপ্রাপ্ত দপ্তর: {$officeName}\n";
+
+        if ($assignedName) {
+            $reply .= "• তদন্তকারী কর্মকর্তা: {$assignedName} ({$assignedPost})\n";
+        }
+
+        if ($complaint->due_at) {
+            $reply .= "• নির্ধারিত সময়সীমা: " . $complaint->due_at->format('d/m/Y') . " ইং পর্যন্ত\n";
+        }
+
+        // Recent action taken or resolution notes
+        if ($complaint->current_status === 'resolved') {
+            $lastAction = $complaint->actions->first();
+            $actionDesc = $lastAction ? $lastAction->description : 'দপ্তরের নথিভুক্ত সিদ্ধান্ত অনুযায়ী প্রতিকারমূলক ব্যবস্থা সম্পন্ন হয়েছে।';
+            $reply .= "\n[গৃহীত সমাধান]: {$actionDesc}\n\nআপনার মূল্যবান মতামতের জন্য ট্র্যাকিং পেজে গিয়ে রেটিং ও প্রতিক্রিয়া জানাতে পারেন।";
+        } else {
+            $latestTimeline = $complaint->statusHistories->first();
+            if ($latestTimeline && $latestTimeline->remarks_bn) {
+                $reply .= "\nসর্বশেষ আপডেট: " . $latestTimeline->remarks_bn;
+            } else {
+                $reply .= "\nসর্বশেষ আপডেট অনুযায়ী, দায়িত্বপ্রাপ্ত কর্তৃপক্ষ বিষয়টি পর্যালোচনা করছেন। পরবর্তী অগ্রগতির সাথে সাথে আপনাকে জানানো হবে।";
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'tracking_id' => $complaint->tracking_id,
+            'complaint_id' => $complaint->id,
+            'title' => $complaint->title,
+            'current_status' => $complaint->current_status,
+            'status_label' => $statusText,
+            'office_name' => $officeName,
+            'assigned_officer' => $assignedName ? "{$assignedName} ({$assignedPost})" : null,
+            'due_at' => $complaint->due_at ? $complaint->due_at->format('d/m/Y') : null,
+            'reply' => $reply,
+            'track_url' => route('complaint.track', ['id' => $complaint->tracking_id]),
+        ]);
     }
 }

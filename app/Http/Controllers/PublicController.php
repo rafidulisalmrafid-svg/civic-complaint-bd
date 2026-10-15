@@ -65,6 +65,20 @@ class PublicController extends Controller
                 ])
                 ->toArray();
 
+            // All 8 Administrative Divisions of Bangladesh
+            $divisions = Division::where('status', 'active')
+                ->withCount(['districts', 'complaints'])
+                ->get()
+                ->map(fn ($d) => [
+                    'id' => $d->id,
+                    'name_bn' => $d->name_bn,
+                    'name_en' => $d->name_en,
+                    'code' => $d->code,
+                    'districts_count' => $d->districts_count,
+                    'complaints_count' => $d->complaints_count,
+                ])
+                ->toArray();
+
             return [
                 'stats' => [
                     'total' => $totalComplaints,
@@ -77,6 +91,7 @@ class PublicController extends Controller
                 'categories' => $categories,
                 'pilotDistricts' => $pilotDistricts,
                 'recentResolved' => $recentResolved,
+                'divisions' => $divisions,
             ];
         });
 
@@ -237,5 +252,39 @@ class PublicController extends Controller
     public function about()
     {
         return Inertia::render('Public/About');
+    }
+
+    public function categories()
+    {
+        $categories = ComplaintCategory::where('status', 'active')
+            ->with([
+                'problemTypes' => fn($q) => $q->where('status', 'active')->orderBy('display_order'),
+                'subcategories' => fn($q) => $q->where('status', 'active'),
+                'defaultOrganization',
+            ])
+            ->withCount('complaints')
+            ->orderBy('display_order')
+            ->get();
+
+        return Inertia::render('Public/Categories', [
+            'categories' => $categories,
+        ]);
+    }
+
+    public function aiAssistant()
+    {
+        return Inertia::render('Public/AiAssistantPage', [
+            'currentUser' => auth()->user(),
+        ]);
+    }
+
+    public function privacy()
+    {
+        return Inertia::render('Public/Privacy');
+    }
+
+    public function contact()
+    {
+        return Inertia::render('Public/Contact');
     }
 }

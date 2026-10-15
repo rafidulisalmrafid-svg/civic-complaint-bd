@@ -28,6 +28,10 @@ Route::post('/track/{trackingId}/feedback', [PublicController::class, 'submitFee
 Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-it-works');
 Route::get('/faq', [PublicController::class, 'faq'])->name('faq');
 Route::get('/about', [PublicController::class, 'about'])->name('about');
+Route::get('/categories', [PublicController::class, 'categories'])->name('categories');
+Route::get('/ai-assistant', [PublicController::class, 'aiAssistant'])->name('ai-assistant');
+Route::get('/privacy', [PublicController::class, 'privacy'])->name('privacy');
+Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 
 // Multi-step Complaint Submission
 Route::get('/submit', [ComplaintSubmissionController::class, 'create'])->name('complaint.submit');
@@ -55,6 +59,8 @@ Route::prefix('api/ai')->name('api.ai.')->group(function () {
     Route::post('/analyze', [AiAssistantController::class, 'analyze'])->name('analyze');
     Route::post('/generate-formal-letter', [AiAssistantController::class, 'generateFormalLetter'])->name('generate-letter');
     Route::post('/submit-complaint', [AiAssistantController::class, 'submitComplaint'])->name('submit');
+    Route::post('/verify-document', [AiAssistantController::class, 'verifyDocument'])->name('verify-document');
+    Route::post('/track-status', [AiAssistantController::class, 'trackStatus'])->name('track-status');
 });
 
 /*
@@ -155,4 +161,11 @@ Route::middleware(['auth', 'role:main_admin'])->prefix('admin')->name('admin.')-
 
     // Audit Logs
     Route::get('/audit', [AuditLogController::class, 'index'])->name('audit');
+
+    // Document Verification Queue (AI-Assisted Document Pipeline)
+    Route::get('/documents', [AdminDashboardController::class, 'documentQueue'])->name('documents');
+    Route::post('/documents/{attachment}/review', [AdminDashboardController::class, 'reviewDocument'])->name('documents.review');
+
+    // AI Routing & Model Performance Evaluation (Human-in-the-loop Evaluation)
+    Route::get('/ai-eval', [AdminDashboardController::class, 'aiEvaluation'])->name('ai-eval');
 });

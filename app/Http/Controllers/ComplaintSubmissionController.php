@@ -27,6 +27,7 @@ use App\Models\AuditLog;
 use App\Services\TrackingIdGenerator;
 use App\Services\ComplaintRoutingService;
 use App\Services\SlaCalculationService;
+use App\Services\DocumentVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -196,6 +197,10 @@ class ComplaintSubmissionController extends Controller
                 'current_status' => 'submitted',
                 'selected_issues_summary' => $issuesSummary,
                 'due_at' => $dueAt,
+                'conflict_of_interest_detected' => $routed['conflict_of_interest'] ?? false,
+                'conflict_resolution_note' => $routed['conflict_note'] ?? null,
+                'routing_dispatch_time' => now(),
+                'delivery_status' => 'delivered',
             ]);
 
             // 8. Store Selected Issues in normalized table
@@ -208,7 +213,7 @@ class ComplaintSubmissionController extends Controller
                 ]);
             }
 
-            // 9. Store Camera Photos (Base64 data URLs from HTML5 camera)
+            // 9. Store Camera Photos (Base64 data URLs from HTML5 camera) with AI Document Verification
             if ($request->has('camera_photos') && is_array($request->camera_photos)) {
                 foreach ($request->camera_photos as $index => $dataUrl) {
                     if (str_starts_with($dataUrl, 'data:image')) {
@@ -222,6 +227,14 @@ class ComplaintSubmissionController extends Controller
 
                         Storage::disk('public')->put($filePath, $imageBase64);
 
+                        // Run verification on saved camera photo
+                        $verification = DocumentVerificationService::verifyDocument($filePath, [
+                            'complainant_name' => $complaint->complainant_name,
+                            'office_name' => $office->name_bn,
+                            'incident_date' => date('d/m/Y'),
+                            'title' => $complaint->title,
+                        ]);
+
                         ComplaintAttachment::create([
                             'complaint_id' => $complaint->id,
                             'file_path' => $filePath,
@@ -231,15 +244,34 @@ class ComplaintSubmissionController extends Controller
                             'is_camera_capture' => true,
                             'is_private' => true,
                             'uploaded_by_user_id' => $user->id,
+                            'verification_status' => $verification['verification_status'],
+                            'confidence_score' => $verification['confidence_score'],
+                            'document_type' => 'photo_evidence',
+                            'ocr_extracted_text' => $verification['ocr_extracted_text'],
+                            'extracted_entities' => $verification['extracted_entities'],
+                            'file_hash' => $verification['file_hash'],
+                            'is_duplicate' => $verification['is_duplicate'],
+                            'duplicate_of_attachment_id' => $verification['duplicate_of_attachment_id'],
+                            'analysis_flags' => $verification['analysis_flags'],
+                            'verification_method' => $verification['verification_method'],
+                            'admin_review_status' => $verification['admin_review_status'],
                         ]);
                     }
                 }
             }
 
-            // 10. Store standard uploaded files if any
+            // 10. Store standard uploaded files with AI Document Verification Pipeline
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $path = $file->store('evidence', 'public');
+
+                    $verification = DocumentVerificationService::verifyDocument($file, [
+                        'complainant_name' => $complaint->complainant_name,
+                        'office_name' => $office->name_bn,
+                        'incident_date' => date('d/m/Y'),
+                        'title' => $complaint->title,
+                    ]);
+
                     ComplaintAttachment::create([
                         'complaint_id' => $complaint->id,
                         'file_path' => $path,
@@ -249,6 +281,17 @@ class ComplaintSubmissionController extends Controller
                         'is_camera_capture' => false,
                         'is_private' => true,
                         'uploaded_by_user_id' => $user->id,
+                        'verification_status' => $verification['verification_status'],
+                        'confidence_score' => $verification['confidence_score'],
+                        'document_type' => $verification['document_type'],
+                        'ocr_extracted_text' => $verification['ocr_extracted_text'],
+                        'extracted_entities' => $verification['extracted_entities'],
+                        'file_hash' => $verification['file_hash'],
+                        'is_duplicate' => $verification['is_duplicate'],
+                        'duplicate_of_attachment_id' => $verification['duplicate_of_attachment_id'],
+                        'analysis_flags' => $verification['analysis_flags'],
+                        'verification_method' => $verification['verification_method'],
+                        'admin_review_status' => $verification['admin_review_status'],
                     ]);
                 }
             }

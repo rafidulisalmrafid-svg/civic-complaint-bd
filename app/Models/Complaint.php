@@ -42,6 +42,12 @@ class Complaint extends Model
         'due_at',
         'resolved_at',
         'closed_at',
+        'conflict_of_interest_detected',
+        'conflict_resolution_note',
+        'routing_dispatch_time',
+        'department_acknowledged_at',
+        'delivery_status',
+        'formal_letter_text',
     ];
 
     protected function casts(): array
@@ -50,12 +56,15 @@ class Complaint extends Model
             'is_anonymous' => 'boolean',
             'is_sensitive' => 'boolean',
             'is_person_unknown' => 'boolean',
+            'conflict_of_interest_detected' => 'boolean',
             'latitude' => 'float',
             'longitude' => 'float',
             'custom_fields_data' => 'array',
             'due_at' => 'datetime',
             'resolved_at' => 'datetime',
             'closed_at' => 'datetime',
+            'routing_dispatch_time' => 'datetime',
+            'department_acknowledged_at' => 'datetime',
         ];
     }
 

@@ -159,14 +159,76 @@ export default function OfficerComplaintDetail({ complaint, offices, officers })
                                 {complaint.description}
                             </div>
 
+                            {/* Conflict of Interest Rule Guard Banner */}
+                            {complaint.conflict_of_interest_detected && (
+                                <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-xs text-amber-950 flex items-start gap-3 shadow-xs">
+                                    <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="font-extrabold text-sm text-amber-900">স্বার্থের সংঘাত রোধের সুরক্ষা রুল সক্রিয় (Conflict-of-Interest Guard)</p>
+                                        <p className="mt-1 leading-relaxed">{complaint.conflict_resolution_note || 'অভিযোগটি নির্দিষ্ট কর্মকর্তার বিরুদ্ধে আনীত হওয়ায় তাঁকে দায়িত্ব থেকে বাদ দিয়ে নিরপেক্ষ অনুসন্ধান কর্তৃপক্ষ নির্ধারণ করা হয়েছে।'}</p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Specific Targeted Officer Warning */}
                             {complaint.specific_officer && (
-                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
-                                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 flex items-start gap-2">
+                                    <AlertCircle className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-bold">অভিযুক্ত কর্মকর্তা/কর্মচারী:</p>
+                                        <p className="font-bold">অভিযোগে উল্লিখিত সংশ্লিষ্ট ব্যক্তি বা কর্মকর্তা:</p>
                                         <p>{complaint.specific_officer.name_bn} ({complaint.specific_officer.designation_bn})</p>
-                                        <p className="text-[11px] text-amber-700 mt-0.5">স্বার্থের সংঘাত রোধে নিরপেক্ষভাবে তদন্ত পরিচালনা করুন।</p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">নিরপেক্ষ প্রশাসনিক বিধিমোতাবেক তদন্ত সম্পন্ন করুন।</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Attached Evidence & AI Document Verification Reports */}
+                            {complaint.attachments && complaint.attachments.length > 0 && (
+                                <div className="pt-3 border-t border-slate-100 space-y-3">
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                                        <span>সংযুক্ত প্রমাণাদি ও AI ডকুমেন্ট ভেরিফিকেশন রিপোর্ট</span>
+                                        <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
+                                            {complaint.attachments.length} টি নথি
+                                        </span>
+                                    </h4>
+
+                                    <div className="space-y-2">
+                                        {complaint.attachments.map((att) => (
+                                            <div
+                                                key={att.id}
+                                                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText className="w-4 h-4 text-slate-500" />
+                                                        <span className="font-bold text-slate-900">{att.original_filename}</span>
+                                                        <span className="text-[10px] text-slate-400">({(att.file_size / 1024).toFixed(1)} KB)</span>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        {att.verification_status && (
+                                                            <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                                                                att.verification_status === 'verified' || att.verification_status === 'likely_authentic'
+                                                                    ? 'bg-emerald-100 text-emerald-800'
+                                                                    : att.verification_status === 'needs_manual_review'
+                                                                    ? 'bg-amber-100 text-amber-800'
+                                                                    : 'bg-red-100 text-red-800'
+                                                            }`}>
+                                                                AI স্ট্যাটাস: {att.verification_status} ({att.confidence_score}%)
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* OCR & Entity Snippet */}
+                                                {att.ocr_extracted_text && (
+                                                    <div className="p-2.5 bg-white rounded-lg border border-slate-200 text-[11px] text-slate-600 font-mono line-clamp-2">
+                                                        <span className="text-slate-400 select-none block font-sans text-[10px] uppercase font-bold">OCR পাঠোদ্ধার:</span>
+                                                        {att.ocr_extracted_text}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}

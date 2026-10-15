@@ -20,7 +20,8 @@ import {
     Sparkles,
     MapPin,
     AlertCircle,
-    Info
+    Info,
+    Compass
 } from 'lucide-react';
 
 export default function PublicLayout({ children, title }) {
@@ -180,6 +181,27 @@ export default function PublicLayout({ children, title }) {
                             </Link>
 
                             <Link 
+                                href="/categories" 
+                                prefetch
+                                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                                    currentPath.startsWith('/categories') 
+                                        ? 'text-emerald-900 bg-emerald-100/70 border border-emerald-300/70 shadow-2xs' 
+                                        : 'text-slate-700 hover:text-emerald-800 hover:bg-slate-100/70'
+                                }`}
+                            >
+                                <Building2 className="w-4 h-4 text-emerald-700" />
+                                <span>ক্যাটাগরি</span>
+                            </Link>
+
+                            <a 
+                                href="/#divisions" 
+                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-emerald-800 hover:bg-slate-100/70 transition-all"
+                            >
+                                <Compass className="w-4 h-4 text-emerald-700" />
+                                <span>৮টি বিভাগ</span>
+                            </a>
+
+                            <Link 
                                 href="/faq" 
                                 prefetch
                                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
@@ -195,6 +217,15 @@ export default function PublicLayout({ children, title }) {
 
                         {/* Action CTA Buttons (Desktop) */}
                         <div className="hidden md:flex items-center gap-2.5 shrink-0">
+                            <Link
+                                href="/ai-assistant"
+                                prefetch
+                                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-700 hover:from-indigo-700 hover:to-violet-800 text-white text-xs sm:text-sm font-extrabold shadow-md shadow-indigo-950/20 active:scale-95 transition-all"
+                            >
+                                <Sparkles className="w-4 h-4 text-amber-300" />
+                                <span>AI সহকারী</span>
+                            </Link>
+
                             <Link
                                 href="/submit"
                                 prefetch
@@ -364,6 +395,15 @@ export default function PublicLayout({ children, title }) {
                                 <HelpCircle className="w-4 h-4 text-emerald-700" />
                                 <span>সেবা ও প্রতিকার নির্দেশিকা</span>
                             </Link>
+
+                            <a 
+                                href="/#divisions" 
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all"
+                            >
+                                <Compass className="w-4 h-4 text-emerald-700" />
+                                <span>৮টি বিভাগ ও ঐতিহ্য</span>
+                            </a>
 
                             <Link 
                                 href="/faq" 
@@ -566,7 +606,9 @@ export default function PublicLayout({ children, title }) {
                         <div className="flex items-center gap-4">
                             <Link href="/about" className="hover:text-slate-300 transition-colors">পরিচিতি</Link>
                             <span>•</span>
-                            <Link href="/faq" className="hover:text-slate-300 transition-colors">গোপনীয়তা নীতি</Link>
+                            <Link href="/privacy" className="hover:text-slate-300 transition-colors">গোপনীয়তা নীতি</Link>
+                            <span>•</span>
+                            <Link href="/contact" className="hover:text-slate-300 transition-colors">যোগাযোগ ও হেল্পলাইন</Link>
                             <span>•</span>
                             <Link href="/how-it-works" className="hover:text-slate-300 transition-colors">ব্যবহারের শর্তাবলী</Link>
                         </div>

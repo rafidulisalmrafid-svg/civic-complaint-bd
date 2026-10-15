@@ -31,3 +31,4 @@ cloudflared.exe
 
 scratch/
 scratch_page.json
+*.zip

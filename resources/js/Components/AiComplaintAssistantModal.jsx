@@ -85,6 +85,43 @@ export default function AiComplaintAssistantModal({ isOpen, onClose }) {
     const [userInput, setUserInput] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
+
+    const toggleVoiceListening = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('আপনার ব্রাউজারে ভয়েস ইনপুট সমর্থিত নয়। অনুগ্রহ করে গুগল ক্রোম বা মাইক্রোসফট এজ ব্যবহার করুন।');
+            return;
+        }
+
+        if (isListening) {
+            if (recognitionRef.current) recognitionRef.current.stop();
+            setIsListening(false);
+            return;
+        }
+
+        try {
+            const recognition = new SpeechRecognition();
+            recognition.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => setIsListening(true);
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                setUserInput((prev) => (prev ? prev + ' ' + transcript : transcript));
+            };
+            recognition.onerror = () => setIsListening(false);
+            recognition.onend = () => setIsListening(false);
+
+            recognitionRef.current = recognition;
+            recognition.start();
+        } catch (e) {
+            console.error('Speech recognition error:', e);
+            setIsListening(false);
+        }
+    };
 
     // AI suggestions retrieved dynamically from NLP analyze
     const [aiSuggestions, setAiSuggestions] = useState({
@@ -216,11 +253,35 @@ export default function AiComplaintAssistantModal({ isOpen, onClose }) {
                 size: formatFileSize(file.size),
                 sizeBytes: file.size,
                 previewUrl,
-                uploadedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                uploadedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                verification: null,
             };
         });
 
         setEvidenceItems((prev) => [...prev, ...newItems]);
+
+        // Asynchronously run AI Document Verification Pipeline
+        Array.from(fileList).forEach((file) => {
+            const formData = new FormData();
+            formData.append('document', file);
+            formData.append('complainant_name', complaintData.complainantName || '');
+            formData.append('office_name', complaintData.officeName || '');
+
+            fetch('/api/ai/verify-document', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.report) {
+                    setEvidenceItems((prev) =>
+                        prev.map((it) => it.file === file ? { ...it, verification: data.report } : it)
+                    );
+                }
+            })
+            .catch(err => console.error('Doc verification check error:', err));
+        });
     };
 
     const handleAddLink = (e) => {
@@ -824,6 +885,39 @@ export default function AiComplaintAssistantModal({ isOpen, onClose }) {
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }
         ]);
+
+        // Intercept complaint tracking inquiries (e.g. CGR-2026-000123 এর অবস্থা কী?)
+        const trackingMatch = text.match(/(CGR|COM|CT)[A-Z0-9\-_]+/i);
+        const isTrackingQuery = trackingMatch || text.includes('অবস্থা') || text.includes('ট্র্যাক') || text.includes('স্ট্যাটাস');
+
+        if (isTrackingQuery && (trackingMatch || currentStep === 1)) {
+            setIsAnalyzing(true);
+            setMascotState('thinking');
+            fetch('/api/ai/track-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ query: text, tracking_id: trackingMatch ? trackingMatch[0] : text })
+            })
+            .then(res => res.json())
+            .then(data => {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: Date.now() + 1,
+                        sender: 'ai',
+                        text: data.reply || data.message || 'অভিযোগের তথ্য পাওয়া যায়নি।',
+                        step: currentStep,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    }
+                ]);
+                setMascotState('welcoming');
+            })
+            .catch(err => {
+                console.error(err);
+            })
+            .finally(() => setIsAnalyzing(false));
+            return;
+        }
 
         if (currentStep === 1) {
             runAnalysis(text);
@@ -1715,7 +1809,17 @@ export default function AiComplaintAssistantModal({ isOpen, onClose }) {
                                                                     <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
                                                                         <span>{item.size}</span>
                                                                         <span>•</span>
-                                                                        <span className="text-emerald-700 font-semibold">✓ AI যাচাইকৃত</span>
+                                                                        {item.verification ? (
+                                                                            <span className={`px-1.5 py-0.2 rounded font-bold text-[9.5px] ${
+                                                                                item.verification.confidence_score >= 70
+                                                                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                                                            }`}>
+                                                                                ✓ AI যাচাই: {item.verification.verification_status === 'likely_authentic' ? 'সামঞ্জস্যপূর্ণ' : 'পর্যালোচনাধীন'} ({item.verification.confidence_score}%)
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-emerald-700 font-semibold">✓ AI যাচাইকৃত</span>
+                                                                        )}
                                                                         {item.type === 'link' && item.url && (
                                                                             <a
                                                                                 href={item.url}
@@ -2073,6 +2177,20 @@ export default function AiComplaintAssistantModal({ isOpen, onClose }) {
                                     disabled={currentStep >= 6 || isAnalyzing}
                                     className="w-full bg-transparent border-0 focus:ring-0 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2"
                                 />
+
+                                <button
+                                    type="button"
+                                    onClick={toggleVoiceListening}
+                                    disabled={currentStep >= 6 || isAnalyzing}
+                                    title={isListening ? "ভয়েস রেকর্ডিং চলছে (বন্ধ করতে চাপ দিন)" : "ভয়েস টাইপিং শুরু করুন (মাইক্রোফোন)"}
+                                    className={`p-2.5 rounded-xl transition-all flex items-center justify-center mr-1 shrink-0 ${
+                                        isListening 
+                                            ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-200' 
+                                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                    }`}
+                                >
+                                    <Mic className={`w-4 h-4 ${isListening ? 'animate-bounce' : ''}`} />
+                                </button>
 
                                 <button
                                     type="submit"
