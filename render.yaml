@@ -14,7 +14,7 @@ services:
       - key: APP_DEBUG
         value: false
       - key: APP_KEY
-        generateValue: true
+        value: base64:Rr+QegrnoWVcN+YZLoBvthY8zoxsJuth8PWaeIJH54I=
       - key: APP_URL
         value: https://e-avijog-baksho.onrender.com
       - key: DB_CONNECTION
