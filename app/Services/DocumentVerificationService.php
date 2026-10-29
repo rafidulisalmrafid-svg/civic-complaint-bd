@@ -65,7 +65,8 @@ class DocumentVerificationService
             'image/jpeg', 'image/png', 'image/webp', 'image/heic',
             'application/pdf', 'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'video/mp4', 'video/quicktime', 'audio/mpeg', 'audio/wav', 'audio/m4a'
+            'video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo', 'video/avi', 'video/x-matroska', 'video/3gpp', 'video/x-m4v',
+            'audio/mpeg', 'audio/wav', 'audio/m4a'
         ];
 
         // Disallow dangerous script files and double extensions
@@ -146,7 +147,64 @@ class DocumentVerificationService
             $confidence += 15;
         }
 
-        // File format technical indicators
+        // File format technical indicators & AI / Tampering heuristics
+        $isCameraCapture = (bool) ($context['is_camera_capture'] ?? false);
+        $aiTamperDetected = false;
+
+        if ($isCameraCapture) {
+            $flags[] = "✓ ডিভাইস ক্যামেরা দিয়ে সরাসরি লাইভ ক্যাপচারকৃত মাঠপর্যায়ের প্রাথমিক প্রমাণ (উচ্চ অগ্রাধিকার)।";
+            $confidence += 25;
+        } else {
+            // Check for AI generation or photo tampering in uploaded gallery / files
+            $fileContentForAnalysis = $headerBytes;
+            if (filesize($realPath) > 4096) {
+                // Read a bit more metadata from the end of the file where XMP/Photoshop headers often reside
+                $tailHandle = @fopen($realPath, 'rb');
+                if ($tailHandle) {
+                    @fseek($tailHandle, max(0, filesize($realPath) - 16384));
+                    $tailBytes = @fread($tailHandle, 16384);
+                    @fclose($tailHandle);
+                    $fileContentForAnalysis .= $tailBytes;
+                }
+            }
+            $lowerMetadata = strtolower($fileContentForAnalysis . ' ' . $originalName);
+
+            $aiSignatures = [
+                'midjourney', 'dall-e', 'dalle', 'stablediffusion', 'stable-diffusion',
+                'deepfake', 'novelai', 'bing_image', 'chatgpt', 'civitai',
+                'comfyui', 'automatic1111', 'invokeai', 'genai', 'ai_generated',
+                'synthetic_media', 'adobe firefly', 'sora', 'runwayml', 'pika'
+            ];
+
+            $tamperSignatures = [
+                'photoshop', 'adobe premiere', 'facetune', 'airbrush', 'deepart', 'faceapp'
+            ];
+
+            foreach ($aiSignatures as $sig) {
+                if (str_contains($lowerMetadata, $sig)) {
+                    $aiTamperDetected = true;
+                    $flags[] = "⚠️ এআই জেনারেশন সিগনেচার শনাক্ত ({$sig}): ছবিটি কৃত্রিম বুদ্ধিমত্তা দ্বারা তৈরি হওয়ার প্রবল সম্ভাবনা রয়েছে।";
+                    break;
+                }
+            }
+
+            if (! $aiTamperDetected) {
+                foreach ($tamperSignatures as $sig) {
+                    if (str_contains($lowerMetadata, $sig)) {
+                        $aiTamperDetected = true;
+                        $flags[] = "⚠️ ডিজিটাল পরিবর্তনের সিগনেচার শনাক্ত ({$sig}): ফটোতে সফটওয়্যার পরিবর্তনের প্রমাণ পাওয়া গেছে।";
+                        break;
+                    }
+                }
+            }
+
+            if ($aiTamperDetected) {
+                $confidence -= 35;
+            } else {
+                $flags[] = "গ্যালারি/ডিভাইস ফাইল থেকে সংযুক্ত প্রমাণাদি। প্রাথমিক এআই বা কৃত্রিম বিকৃতি শনাক্ত হয়নি।";
+            }
+        }
+
         if ($detectedMime === 'application/pdf') {
             $flags[] = "অফিসিয়াল PDF স্ট্রাকচার ও ফন্ট ডিরেক্টরি বৈধ।";
             $confidence += 10;
@@ -164,6 +222,9 @@ class DocumentVerificationService
                     $confidence += 5;
                 }
             }
+        } elseif (str_starts_with($detectedMime, 'video/')) {
+            $flags[] = "ভিডিও প্রমাণাদি সংযুক্ত হয়েছে। অডিও ও ভিজ্যুয়াল বিশ্লেষণ কার্যকর।";
+            $confidence += 10;
         }
 
         // Clamp confidence score 10 - 98 (AI never outputs 100% since human review is final)
@@ -171,13 +232,13 @@ class DocumentVerificationService
 
         // Determine Status based on specifications:
         // 'verified' | 'likely_authentic' | 'needs_manual_review' | 'potentially_manipulated' | 'unverifiable' | 'security_rejected'
-        if ($confidence >= 80 && ! $isDuplicate) {
-            $status = 'likely_authentic'; // Or 'verified' if official API verification was conducted
-        } elseif ($confidence >= 60) {
+        if ($aiTamperDetected) {
+            $status = 'potentially_manipulated';
+        } elseif ($isCameraCapture && $confidence >= 75 && ! $isDuplicate) {
+            $status = 'verified';
+        } elseif ($confidence >= 60 && ! $isDuplicate) {
             $status = 'likely_authentic';
-        } elseif ($isDuplicate) {
-            $status = 'needs_manual_review';
-        } elseif ($confidence < 40) {
+        } elseif ($isDuplicate || $confidence < 45) {
             $status = 'needs_manual_review';
         } else {
             $status = 'unverifiable';
@@ -193,7 +254,8 @@ class DocumentVerificationService
             'is_duplicate' => $isDuplicate,
             'duplicate_of_attachment_id' => $duplicateOfId,
             'analysis_flags' => $flags,
-            'verification_method' => 'AI_OCR_Heuristic_V2',
+            'ai_tamper_detected' => $aiTamperDetected,
+            'verification_method' => $isCameraCapture ? 'Live_Camera_Direct_Capture' : 'AI_OCR_Heuristic_V2',
             'admin_review_status' => in_array($status, ['needs_manual_review', 'potentially_manipulated', 'unverifiable']) ? 'pending' : 'approved',
             'disclaimer' => 'সতর্কীকরণ: এআই-ভিত্তিক ডকুমেন্ট বিশ্লেষণ প্রাথমিক সহায়ক মাত্র; চূড়ান্ত আইনি প্রমাণ বা সত্যতা নির্ধারণের দায়িত্ব সংশ্লিষ্ট প্রশাসনিক কর্মকর্তার।',
         ];
@@ -226,6 +288,9 @@ class DocumentVerificationService
         }
         if (str_starts_with($mime, 'image/')) {
             return 'photo_evidence';
+        }
+        if (str_starts_with($mime, 'video/') || preg_match('/\.(mp4|mov|avi|webm|mkv|3gp|3gpp|m4v|wmv)$/i', $filename)) {
+            return 'video_evidence';
         }
         if ($mime === 'application/pdf') {
             return 'application_letter';

@@ -105,6 +105,10 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        if (!$request->has('login') && $request->has('identifier')) {
+            $request->merge(['login' => $request->input('identifier')]);
+        }
+
         $request->validate([
             'login' => 'required|string',
             'password' => 'required|string',

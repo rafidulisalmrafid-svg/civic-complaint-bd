@@ -1,24 +1,31 @@
 services:
   - type: web
-    name: civic-complaint-bd
-    runtime: docker
+    name: e-avijog-baksho
+    env: docker
     plan: free
-    region: singapore
+    region: oregon
+    autoDeploy: true
     dockerfilePath: ./Dockerfile
     envVars:
       - key: APP_NAME
         value: "ই-অভিযোগ বাক্স"
       - key: APP_ENV
         value: production
-      - key: APP_KEY
-        value: "base64:7vG3q+X9+d0R3fFk68A5PZ3bT28j9zL4H7sQ1y5+A9w="
       - key: APP_DEBUG
-        value: "false"
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://e-avijog-baksho.onrender.com
       - key: DB_CONNECTION
         value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
       - key: SESSION_DRIVER
         value: file
+      - key: QUEUE_CONNECTION
+        value: sync
       - key: CACHE_STORE
         value: file
-      - key: MAIL_MAILER
-        value: log
+      - key: FILESYSTEM_DISK
+        value: public

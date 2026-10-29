@@ -20,11 +20,11 @@ class ProblemTypeController extends Controller
         $query = ComplaintProblemType::with('category');
 
         if ($categoryId) {
-            $query->where('complaint_category_id', $categoryId);
+            $query->where('category_id', $categoryId);
         }
 
-        $problemTypes = $query->orderBy('complaint_category_id')
-            ->orderBy('issue_group')
+        $problemTypes = $query->orderBy('category_id')
+            ->orderBy('cluster_name_bn')
             ->orderBy('display_order')
             ->get();
 
@@ -38,16 +38,43 @@ class ProblemTypeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'complaint_category_id' => 'required|exists:complaint_categories,id',
-            'issue_group' => 'required|string|max:50',
-            'name_bn' => 'required|string|max:200',
-            'name_en' => 'required|string|max:200',
-            'severity_level' => 'required|in:low,medium,high,critical',
-            'display_order' => 'integer',
-            'is_active' => 'boolean',
+            'complaint_category_id' => 'nullable|exists:complaint_categories,id',
+            'category_id' => 'nullable|exists:complaint_categories,id',
+            'issue_group' => 'nullable|string|max:100',
+            'cluster_name_bn' => 'nullable|string|max:100',
+            'name_bn' => 'nullable|string|max:200',
+            'title_bn' => 'nullable|string|max:200',
+            'name_en' => 'nullable|string|max:200',
+            'title_en' => 'nullable|string|max:200',
+            'severity_level' => 'nullable|in:low,medium,high,critical,urgent',
+            'severity' => 'nullable|in:low,medium,high,critical,urgent',
+            'display_order' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+            'status' => 'nullable|string',
         ]);
 
-        $item = ComplaintProblemType::create($validated);
+        $catId = $request->input('category_id') ?? $request->input('complaint_category_id');
+        $titleBn = $request->input('title_bn') ?? $request->input('name_bn');
+        $titleEn = $request->input('title_en') ?? $request->input('name_en');
+        $clusterBn = $request->input('cluster_name_bn') ?? $request->input('issue_group', 'general');
+        $severity = $request->input('severity') ?? $request->input('severity_level', 'medium');
+        $isActive = $request->has('is_active') ? (bool)$request->input('is_active') : true;
+
+        if (!$catId || !$titleBn) {
+            return back()->withErrors(['title_bn' => 'ক্যাটাগরি এবং সমস্যার নাম আবশ্যক।']);
+        }
+
+        $item = ComplaintProblemType::create([
+            'category_id' => $catId,
+            'cluster_name_bn' => $clusterBn,
+            'cluster_name_en' => ucfirst((string)$clusterBn),
+            'title_bn' => $titleBn,
+            'title_en' => $titleEn,
+            'severity' => $severity,
+            'default_sla_days' => 7,
+            'display_order' => (int)$request->input('display_order', 1),
+            'status' => $isActive ? 'active' : 'inactive',
+        ]);
 
         AuditLog::logEvent('problem_type_created', $item, null, $item->toArray());
 
@@ -56,18 +83,40 @@ class ProblemTypeController extends Controller
 
     public function update(Request $request, ComplaintProblemType $problemType)
     {
-        $validated = $request->validate([
-            'complaint_category_id' => 'required|exists:complaint_categories,id',
-            'issue_group' => 'required|string|max:50',
-            'name_bn' => 'required|string|max:200',
-            'name_en' => 'required|string|max:200',
-            'severity_level' => 'required|in:low,medium,high,critical',
-            'display_order' => 'integer',
-            'is_active' => 'boolean',
+        $request->validate([
+            'complaint_category_id' => 'nullable|exists:complaint_categories,id',
+            'category_id' => 'nullable|exists:complaint_categories,id',
+            'issue_group' => 'nullable|string|max:100',
+            'cluster_name_bn' => 'nullable|string|max:100',
+            'name_bn' => 'nullable|string|max:200',
+            'title_bn' => 'nullable|string|max:200',
+            'name_en' => 'nullable|string|max:200',
+            'title_en' => 'nullable|string|max:200',
+            'severity_level' => 'nullable|in:low,medium,high,critical,urgent',
+            'severity' => 'nullable|in:low,medium,high,critical,urgent',
+            'display_order' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+            'status' => 'nullable|string',
         ]);
 
+        $catId = $request->input('category_id') ?? $request->input('complaint_category_id', $problemType->category_id);
+        $titleBn = $request->input('title_bn') ?? $request->input('name_bn', $problemType->title_bn);
+        $titleEn = $request->input('title_en') ?? $request->input('name_en', $problemType->title_en);
+        $clusterBn = $request->input('cluster_name_bn') ?? $request->input('issue_group', $problemType->cluster_name_bn);
+        $severity = $request->input('severity') ?? $request->input('severity_level', $problemType->severity);
+        $status = $request->has('is_active') ? ($request->input('is_active') ? 'active' : 'inactive') : $problemType->status;
+
         $old = $problemType->toArray();
-        $problemType->update($validated);
+        $problemType->update([
+            'category_id' => $catId,
+            'cluster_name_bn' => $clusterBn,
+            'cluster_name_en' => ucfirst((string)$clusterBn),
+            'title_bn' => $titleBn,
+            'title_en' => $titleEn,
+            'severity' => $severity,
+            'display_order' => (int)$request->input('display_order', $problemType->display_order),
+            'status' => $status,
+        ]);
 
         AuditLog::logEvent('problem_type_updated', $problemType, $old, $problemType->toArray());
 

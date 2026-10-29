@@ -146,7 +146,49 @@ class CategorySeeder extends Seeder
             'display_order' => 1,
         ]);
 
-        // 5. Women & Children (Sensitive)
+        // 5. Law & Order and Police
+        $policeCat = ComplaintCategory::create([
+            'name_bn' => 'আইনশৃঙ্খলা ও পুলিশ',
+            'name_en' => 'Law & Order and Police',
+            'slug' => 'law-and-order',
+            'icon' => 'shield',
+            'description' => 'থানা ও পুলিশি সেবা, মামলা বা জিডি গ্রহণে অনীহা, হয়রানি, চাঁদাবাজি ও এলাকার সার্বিক নিরাপত্তা সংক্রান্ত অভিযোগ',
+            'default_priority' => 'high',
+            'default_sla_days' => 3,
+            'is_sensitive' => true,
+            'ministry_id' => $mha?->id,
+            'default_organization_id' => $police?->id,
+            'display_order' => 5,
+        ]);
+
+        ComplaintSubcategory::create(['complaint_category_id' => $policeCat->id, 'name_bn' => 'থানায় জিডি বা মামলা গ্রহণে অনীহা বা অতিরিক্ত বিলম্ব', 'name_en' => 'Refusal or Delay for GD / FIR', 'display_order' => 1]);
+        ComplaintSubcategory::create(['complaint_category_id' => $policeCat->id, 'name_bn' => 'চাঁদাবাজি, মাস্তানি, ছিনতাই ও কিশোর গ্যাং উপদ্রব', 'name_en' => 'Extortion, Mugging & Gang Menace', 'display_order' => 2]);
+        ComplaintSubcategory::create(['complaint_category_id' => $policeCat->id, 'name_bn' => 'তদন্তে পক্ষপাতিত্ব বা অনৈতিক অর্থ দাবি', 'name_en' => 'Investigation Bias or Bribery', 'display_order' => 3]);
+        ComplaintSubcategory::create(['complaint_category_id' => $policeCat->id, 'name_bn' => 'ট্রাফিক পুলিশি হয়রানি বা অবৈধ পার্কিং সংক্রান্ত বিশৃঙ্খলা', 'name_en' => 'Traffic Harassment & Disarray', 'display_order' => 4]);
+        ComplaintSubcategory::create(['complaint_category_id' => $policeCat->id, 'name_bn' => 'এলাকায় মাদক ব্যবসা ও সাধারণ নাগরিক নিরাপত্তাহীনতা', 'name_en' => 'Narcotics & Neighborhood Security', 'display_order' => 5]);
+
+        CustomField::create([
+            'complaint_category_id' => $policeCat->id,
+            'field_name' => 'thana_name',
+            'label_bn' => 'সংশ্লিষ্ট থানা / পুলিশ ফাঁড়ির নাম',
+            'label_en' => 'Thana / Police Outpost Name',
+            'field_type' => 'text',
+            'placeholder_bn' => 'যেমন: কোতোয়ালি মডেল থানা বা সংশ্লিষ্ট ফাঁড়ি',
+            'is_required' => false,
+            'display_order' => 1,
+        ]);
+        CustomField::create([
+            'complaint_category_id' => $policeCat->id,
+            'field_name' => 'incident_datetime',
+            'label_bn' => 'ঘটনার তারিখ ও আনুমানিক সময়',
+            'label_en' => 'Incident Date & Approx Time',
+            'field_type' => 'text',
+            'placeholder_bn' => 'যেমন: ২৮ অক্টোবর, রাত ৯:৩০',
+            'is_required' => false,
+            'display_order' => 2,
+        ]);
+
+        // 6. Women & Children (Sensitive)
         $womenCat = ComplaintCategory::create([
             'name_bn' => 'নারী ও শিশু সুরক্ষা এবং সংবেদনশীল অভিযোগ',
             'name_en' => 'Women & Children Protection',
@@ -158,14 +200,14 @@ class CategorySeeder extends Seeder
             'is_sensitive' => true,
             'ministry_id' => $mha?->id,
             'default_organization_id' => $police?->id,
-            'display_order' => 5,
+            'display_order' => 6,
         ]);
 
         ComplaintSubcategory::create(['complaint_category_id' => $womenCat->id, 'name_bn' => 'রাস্তাঘাটে বা কর্মক্ষেত্রে ইভটিজিং ও হেনস্তা', 'name_en' => 'Stalking & Harassment', 'display_order' => 1]);
         ComplaintSubcategory::create(['complaint_category_id' => $womenCat->id, 'name_bn' => 'বাল্যবিয়ে প্রতিরোধের জন্য তথ্য', 'name_en' => 'Child Marriage Prevention', 'display_order' => 2]);
         ComplaintSubcategory::create(['complaint_category_id' => $womenCat->id, 'name_bn' => 'পারিবারিক সহিংসতা ও হুমকি', 'name_en' => 'Domestic Violence & Safety', 'display_order' => 3]);
 
-        // 6. Corruption & Bribery
+        // 7. Corruption & Bribery
         $corruptionCat = ComplaintCategory::create([
             'name_bn' => 'দুর্নীতি ও ঘুষ সংক্রান্ত অভিযোগ',
             'name_en' => 'Corruption & Bribery',
@@ -177,13 +219,13 @@ class CategorySeeder extends Seeder
             'is_sensitive' => true,
             'ministry_id' => $mopa?->id,
             'default_organization_id' => $acc?->id,
-            'display_order' => 6,
+            'display_order' => 7,
         ]);
 
         ComplaintSubcategory::create(['complaint_category_id' => $corruptionCat->id, 'name_bn' => 'সেবা প্রদানের বিনিময়ে ঘুষ দাবি', 'name_en' => 'Bribery Demand', 'display_order' => 1]);
         ComplaintSubcategory::create(['complaint_category_id' => $corruptionCat->id, 'name_bn' => 'উন্নয়ন প্রকল্পের অর্থ আত্মসাৎ বা অনিয়ম', 'name_en' => 'Public Fund Embezzlement', 'display_order' => 2]);
 
-        // 7. Environment & River
+        // 8. Environment & River
         $envCat = ComplaintCategory::create([
             'name_bn' => 'পরিবেশ দূষণ ও নদী দখল',
             'name_en' => 'Environment & River Encroachment',
@@ -195,14 +237,14 @@ class CategorySeeder extends Seeder
             'is_sensitive' => false,
             'ministry_id' => $moef?->id,
             'default_organization_id' => $doe?->id,
-            'display_order' => 7,
+            'display_order' => 8,
         ]);
 
         ComplaintSubcategory::create(['complaint_category_id' => $envCat->id, 'name_bn' => 'অবৈধ ইটভাটা ও বায়ুদূষণ', 'name_en' => 'Illegal Brick Kiln', 'display_order' => 1]);
         ComplaintSubcategory::create(['complaint_category_id' => $envCat->id, 'name_bn' => 'খাল বা নদী দখল ও ভরাট', 'name_en' => 'River/Canal Encroachment', 'display_order' => 2]);
         ComplaintSubcategory::create(['complaint_category_id' => $envCat->id, 'name_bn' => 'অবৈধভাবে ড্রেজার দিয়ে বালু উত্তোলন', 'name_en' => 'Illegal Sand Mining', 'display_order' => 3]);
 
-        // 8. Road Transport & Infrastructure
+        // 9. Road Transport & Infrastructure
         $roadCat = ComplaintCategory::create([
             'name_bn' => 'সড়ক, সেতু ও যানবাহন সেবা',
             'name_en' => 'Roads, Bridges & Transport',
@@ -214,13 +256,13 @@ class CategorySeeder extends Seeder
             'is_sensitive' => false,
             'ministry_id' => $morb?->id,
             'default_organization_id' => $rhd?->id,
-            'display_order' => 8,
+            'display_order' => 9,
         ]);
 
         ComplaintSubcategory::create(['complaint_category_id' => $roadCat->id, 'name_bn' => 'মহাসড়কে ভাঙন বা ঝুঁকিপূর্ণ সেতু', 'name_en' => 'Damaged Highway / Bridge', 'display_order' => 1]);
         ComplaintSubcategory::create(['complaint_category_id' => $roadCat->id, 'name_bn' => 'ফিটনেসবিহীন গাড়ি ও অতিরিক্ত ভাড়া আদায়', 'name_en' => 'Unfit Vehicle / Overcharging', 'display_order' => 2]);
 
-        // 9. Other Civic Complaints
+        // 10. Other Civic Complaints
         $otherCat = ComplaintCategory::create([
             'name_bn' => 'অন্যান্য সাধারণ নাগরিক অভিযোগ',
             'name_en' => 'Other Civic Complaints',
@@ -232,7 +274,7 @@ class CategorySeeder extends Seeder
             'is_sensitive' => false,
             'ministry_id' => $mopa?->id,
             'default_organization_id' => $dcUno?->id,
-            'display_order' => 9,
+            'display_order' => 10,
         ]);
 
         ComplaintSubcategory::create(['complaint_category_id' => $otherCat->id, 'name_bn' => 'সাধারণ প্রশাসনিক অসুবিধা', 'name_en' => 'General Administrative Issue', 'display_order' => 1]);

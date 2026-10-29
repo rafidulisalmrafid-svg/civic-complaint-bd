@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>নাগরিক সেবা ও অভিযোগ প্রতিকার — সিনেমাটিক প্রমো (বাংলা অডিও)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --gold: #f59e0b;
+            --bg: #040711;
+            --surface: rgba(15, 23, 42, 0.82);
+            --border: rgba(255, 255, 255, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #f8fafc;
+            font-family: 'Hind Siliguri', 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.09) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.07) 0%, transparent 45%);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.25rem;
+            max-width: 960px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            padding: 6px 18px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.35rem;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.05rem;
+        }
+
+        /* 16:9 Cinema Container */
+        .cinema-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1160px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9), 0 0 50px rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        #cinemaCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at center, transparent 65%, rgba(0,0,0,0.85) 100%);
+            z-index: 10;
+        }
+
+        .letterbox-top, .letterbox-bottom {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 38px;
+            background: #000;
+            z-index: 12;
+            pointer-events: none;
+        }
+        .letterbox-top { top: 0; }
+        .letterbox-bottom { bottom: 0; }
+
+        .cinema-branding {
+            position: absolute;
+            top: 48px;
+            left: 36px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            pointer-events: none;
+        }
+
+        .gov-emblem {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #dc2626;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            border: 2px solid #fbbf24;
+            box-shadow: 0 0 16px rgba(220, 38, 38, 0.7);
+        }
+
+        .portal-label {
+            font-size: 1.05rem;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+
+        .portal-label span {
+            display: block;
+            font-size: 0.75rem;
+            color: #34d399;
+            font-weight: 500;
+        }
+
+        .voice-live-badge {
+            position: absolute;
+            top: 48px;
+            right: 36px;
+            z-index: 20;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(10px);
+            padding: 6px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #34d399;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .audio-wave-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 14px;
+        }
+
+        .bar {
+            width: 3px;
+            background: #10b981;
+            border-radius: 2px;
+            animation: bounce 0.8s ease-in-out infinite alternate;
+        }
+        .bar:nth-child(2) { animation-delay: 0.2s; }
+        .bar:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            from { height: 4px; }
+            to { height: 14px; }
+        }
+
+        /* Narrative Subtitles Bar */
+        .narrative-bar {
+            position: absolute;
+            bottom: 50px;
+            left: 5%;
+            right: 5%;
+            z-index: 25;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .narrative-box {
+            display: inline-block;
+            background: rgba(4, 9, 20, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 12px 32px;
+            border-radius: 14px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8);
+            max-width: 95%;
+            transition: all 0.3s ease;
+        }
+
+        .narrative-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #34d399;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .narrative-text {
+            font-size: 1.35rem;
+            color: #ffffff;
+            font-weight: 600;
+            line-height: 1.45;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        }
+
+        /* Play Screen Overlay */
+        .play-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.25rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 30;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .play-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .play-btn-circle {
+            width: 88px;
+            height: 88px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 50px rgba(16, 185, 129, 0.7);
+            transition: transform 0.2s ease;
+        }
+
+        .play-btn-circle:hover {
+            transform: scale(1.1);
+        }
+
+        .play-btn-circle svg {
+            width: 40px;
+            height: 40px;
+            fill: #fff;
+            margin-left: 5px;
+        }
+
+        .play-hint {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        }
+
+        /* Controls */
+        .controls {
+            width: 100%;
+            max-width: 1160px;
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .progress-track {
+            position: relative;
+            width: 100%;
+            height: 9px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            box-shadow: 0 0 14px #10b981;
+            transition: width 0.1s linear;
+        }
+
+        .ctrl-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .ctrl-left {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #fff;
+            padding: 9px 20px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-green:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            border: none;
+            box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+        }
+
+        .btn-gold:hover {
+            background: linear-gradient(135deg, #b45309, #92400e);
+        }
+
+        .timer {
+            font-family: 'Outfit', monospace;
+            font-size: 1.05rem;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        .scene-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .scene-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scene-card:hover, .scene-card.active {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: #10b981;
+            transform: translateY(-2px);
+        }
+
+        .scene-card-time {
+            font-size: 0.75rem;
+            color: #34d399;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        .scene-card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .toast-notify {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            border: 1px solid #10b981;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            z-index: 100;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="badge"><div class="badge-dot"></div> স্টুডিও বাংলা অডিও ও সিনেমাটিক প্রমোশন</div>
+        <h1 class="title">নাগরিক সেবা ও অভিযোগ প্রতিকার প্ল্যাটফর্ম</h1>
+        <p class="subtitle">বাস্তব বাংলা কণ্ঠস্বর, উচ্চমানের সিনেমাটিক ভিজ্যুয়াল ও পূর্ণাঙ্গ ডিজিটাল সমাধান</p>
+    </div>
+
+    <!-- 16:9 Cinema Container -->
+    <div class="cinema-wrapper" id="cinemaContainer">
+        <canvas id="cinemaCanvas" width="1920" height="1080"></canvas>
+        
+        <div class="vignette"></div>
+        <div class="letterbox-top"></div>
+        <div class="letterbox-bottom"></div>
+
+        <div class="cinema-branding">
+            <div class="gov-emblem">গণ</div>
+            <div class="portal-label">
+                গণপ্রজাতন্ত্রী বাংলাদেশ
+                <span>নাগরিক সেবা ও অভিযোগ প্রতিকার প্ল্যাটফর্ম</span>
+            </div>
+        </div>
+
+        <div class="voice-live-badge">
+            <div class="audio-wave-bars">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <span>বাংলা স্টুডিও অডিও লাইভ</span>
+        </div>
+
+        <!-- Narrative Bar -->
+        <div class="narrative-bar">
+            <div class="narrative-box">
+                <div class="narrative-tag" id="narrativeTag">🗣️ ভয়েস ও দৃশ্যপট</div>
+                <div class="narrative-text" id="narrativeText">ভিডিওটি চালু করতে স্ক্রিনে অথবা নিচে প্লে বাটনে ক্লিক করুন...</div>
+            </div>
+        </div>
+
+        <!-- Play Overlay -->
+        <div class="play-screen" id="playScreen">
+            <div class="play-btn-circle">
+                <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </div>
+            <div class="play-hint">সিনেমাটিক প্রমো ও বাংলা ভয়েস শুরু করুন</div>
+        </div>
+    </div>
+
+    <!-- Control Bar -->
+    <div class="controls">
+        <div class="progress-track" id="progressTrack">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="ctrl-row">
+            <div class="ctrl-left">
+                <button class="btn btn-green" id="btnPlay">
+                    <span id="playLabel">▶ প্লে করুন</span>
+                </button>
+                <button class="btn" id="btnRestart">🔄 শুরু থেকে</button>
+                <button class="btn" id="btnAudio">🔊 অডিও সাউন্ড অন</button>
+                <div class="timer" id="timeDisplay">00:00 / 02:00</div>
+            </div>
+
+            <div class="ctrl-right">
+                <button class="btn btn-gold" id="btnDownload">
+                    ⬇️ MP4/WebM সম্পূর্ণ ভিডিও ডাউনলোড
+                </button>
+                <button class="btn" id="btnFull">⛶ ফুলস্ক্রিন</button>
+            </div>
+        </div>
+
+        <!-- Chapter Selector -->
+        <div class="scene-selector">
+            <div class="scene-card active" onclick="jumpTo(0)">
+                <div class="scene-card-time">00:00 - 00:24</div>
+                <div class="scene-card-title">১. রহিম: সংকট ও নাগরিক অসহায়ত্ব</div>
+            </div>
+            <div class="scene-card" onclick="jumpTo(24)">
+                <div class="scene-card-time">00:24 - 00:48</div>
+                <div class="scene-card-title">২. তানভীর: আশার আলো ও দিকনির্দেশনা</div>
+            </div>
+            <div class="scene-card" onclick="jumpTo(48)">
+                <div class="scene-card-time">00:48 - 01:12</div>
+                <div class="scene-card-title">৩. সহজ ডিজিটাল অভিযোগ দাখিল</div>
+            </div>
+            <div class="scene-card" onclick="jumpTo(72)">
+                <div class="scene-card-time">01:12 - 01:36</div>
+                <div class="scene-card-title">৪. স্বচ্ছ প্রশাসনিক তৎপরতা ও ফিল্ড অ্যাকশন</div>
+            </div>
+            <div class="scene-card" onclick="jumpTo(96)">
+                <div class="scene-card-time">01:36 - 01:50</div>
+                <div class="scene-card-title">৫. রহিম: সমস্যার সমাধান ও ৫-স্টার রেটিং</div>
+            </div>
+            <div class="scene-card" onclick="jumpTo(110)">
+                <div class="scene-card-time">01:50 - 02:00</div>
+                <div class="scene-card-title">৬. জাতীয় সমাপনী বার্তা ও হেল্পলাইন</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-notify" id="toast"></div>
+
+    <script>
+        const TOTAL_DURATION = 120;
+        let currentTime = 0;
+        let isPlaying = false;
+        let isAudioOn = true;
+        let lastTimestamp = 0;
+        let animFrameId = null;
+
+        const canvas = document.getElementById('cinemaCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Assets: 8K Photorealistic Film Stills
+        const img1 = new Image();
+        img1.src = '/images/promo/scene1_struggle.jpg';
+
+        const img2 = new Image();
+        img2.src = '/images/promo/scene2_advice.jpg';
+
+        // Real Studio Bengali Voice MP3 Audio Elements
+        const voices = [
+            new Audio('/images/promo/voice_scene1.mp3'),
+            new Audio('/images/promo/voice_scene2.mp3'),
+            new Audio('/images/promo/voice_scene3.mp3'),
+            new Audio('/images/promo/voice_scene4.mp3'),
+            new Audio('/images/promo/voice_scene5.mp3'),
+            new Audio('/images/promo/voice_scene6.mp3')
+        ];
+
+        let currentPlayingAudio = null;
+
+        function stopAllVoices() {
+            voices.forEach(v => {
+                v.pause();
+                v.currentTime = 0;
+            });
+            currentPlayingAudio = null;
+        }
+
+        function playVoice(index) {
+            if (!isAudioOn) return;
+            stopAllVoices();
+            if (voices[index]) {
+                currentPlayingAudio = voices[index];
+                currentPlayingAudio.play().catch(e => console.log('Audio autoplay blocked, user click needed'));
+            }
+        }
+
+        // Web Audio Cinematic Chords (Warm pad underneath)
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playChord(freqs, duration = 5.0) {
+            if (!isAudioOn || !audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            freqs.forEach(freq => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.035, now + 1.2);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + duration);
+            });
+        }
+
+        // Storyboard Timeline Data
+        const scenes = [
+            {
+                start: 0,
+                end: 24,
+                voiceIndex: 0,
+                tag: 'রহিম উদ্দিন (নাগরিক আর্তনাদ)',
+                text: '“কোথায় যাব? কার কাছে বিচার চাইব? দিনের পর দিন অফিসে ঘুরেও কেউ আমার কথা শোনে না।”',
+                chord: [130.81, 155.56, 196.00],
+                render: renderScene1
+            },
+            {
+                start: 24,
+                end: 48,
+                voiceIndex: 1,
+                tag: 'তানভীর (সচেতন তরুণ)',
+                text: '“এত টেনশন করছেন কেন চাচা? এখন আর দালালের পেছনে ঘুরতে হবে না। আপনার মোবাইলেই নাগরিক অভিযোগ প্ল্যাটফর্মে জানান।”',
+                chord: [146.83, 185.00, 220.00],
+                render: renderScene2
+            },
+            {
+                start: 48,
+                end: 72,
+                voiceIndex: 2,
+                tag: 'ভয়েসওভার (সহজ দাখিল)',
+                text: '“মাত্র দুই মিনিটে তথ্য ও ছবি সংযুক্ত করে জমা দিন এবং তাৎক্ষণিক ট্র্যাকিং আইডি পেয়ে যান।”',
+                chord: [164.81, 207.65, 246.94],
+                render: renderScene3
+            },
+            {
+                start: 72,
+                end: 96,
+                voiceIndex: 3,
+                tag: 'দায়িত্বপ্রাপ্ত কর্মকর্তা (ফিল্ড অ্যাকশন)',
+                text: '“অভিযোগটি সরাসরি দায়িত্বপ্রাপ্ত কর্মকর্তার ড্যাশবোর্ডে গৃহীত। দ্রুততম সময়ে সরেজমিনে প্রতিকার ব্যবস্থা শুরু।”',
+                chord: [174.61, 220.00, 261.63],
+                render: renderScene4
+            },
+            {
+                start: 96,
+                end: 110,
+                voiceIndex: 4,
+                tag: 'রহিম উদ্দিন (সমাধান ও সন্তুষ্টি)',
+                text: '“আমার সমস্যার স্থায়ী সমাধান হয়ে গেছে। ঘরে বসে দালাল ছাড়া এত দ্রুত সেবা পেয়েছি, ধন্যবাদ!”',
+                chord: [196.00, 246.94, 293.66],
+                render: renderScene5
+            },
+            {
+                start: 110,
+                end: 120,
+                voiceIndex: 5,
+                tag: 'জাতীয় বার্তা ও সমাপনী আহ্বান',
+                text: '“অন্যায়ে নীরব থাকবেন না। আপনার সমস্যা জানান আজই। নাগরিক অভিযোগ প্ল্যাটফর্ম, আপনার সমস্যা ডিজিটাল সমাধান।”',
+                chord: [261.63, 329.63, 392.00],
+                render: renderScene6
+            }
+        ];
+
+        let activeSceneIndex = -1;
+
+        function getActiveScene() {
+            return scenes.find(s => currentTime >= s.start && currentTime < s.end) || scenes[scenes.length - 1];
+        }
+
+        // ==========================================
+        // SCENE 1: Photorealistic Despair (Ken Burns)
+        // ==========================================
+        function renderScene1(progress, sceneTime) {
+            const zoom = 1.0 + (sceneTime / 24) * 0.12;
+            const w = canvas.width * zoom;
+            const h = canvas.height * zoom;
+            const x = (canvas.width - w) / 2;
+            const y = (canvas.height - h) / 2;
+
+            if (img1.complete && img1.naturalWidth) {
+                ctx.drawImage(img1, x, y, w, h);
+            } else {
+                ctx.fillStyle = '#0a0f1d';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Cinematic Rain Atmosphere
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+            ctx.lineWidth = 1.4;
+            const seed = Math.floor(currentTime * 60);
+            for (let i = 0; i < 75; i++) {
+                const rx = ((i * 157 + seed * 23) % canvas.width);
+                const ry = ((i * 89 + seed * 41) % canvas.height);
+                ctx.beginPath();
+                ctx.moveTo(rx, ry);
+                ctx.lineTo(rx - 8, ry + 26);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            drawDocuTitle("বরিশাল সদর • নাগরিক দুর্ভোগ ও হতাশা", "অফিসে অফিসে ঘুরেও নেই প্রতিকার");
+        }
+
+        // ==========================================
+        // SCENE 2: The Reassurance & Hope (Ken Burns)
+        // ==========================================
+        function renderScene2(progress, sceneTime) {
+            const panX = - (sceneTime / 24) * 40;
+            const zoom = 1.08 - (sceneTime / 24) * 0.05;
+            const w = canvas.width * zoom;
+            const h = canvas.height * zoom;
+            const x = (canvas.width - w) / 2 + panX;
+            const y = (canvas.height - h) / 2;
+
+            if (img2.complete && img2.naturalWidth) {
+                ctx.drawImage(img2, x, y, w, h);
+            } else {
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Golden hour warm sunbeam
+            const sunGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            sunGrad.addColorStop(0, 'rgba(245, 158, 11, 0.16)');
+            sunGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.02)');
+            sunGrad.addColorStop(1, 'rgba(16, 185, 129, 0.12)');
+            ctx.fillStyle = sunGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawDocuTitle("আশার আলো • ডিজিটাল সমাধান", "দালালের প্রয়োজন নেই—মোবাইলেই মিলবে সরকারি প্রতিকার");
+        }
+
+        // ==========================================
+        // SCENE 3: Clean Intake Platform UI
+        // ==========================================
+        function renderScene3(progress, sceneTime) {
+            const bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, 900);
+            bgGrad.addColorStop(0, '#064e3b');
+            bgGrad.addColorStop(1, '#021e17');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Tech grid
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.08)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 60) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            // Mobile Frame Center
+            const phoneW = 560;
+            const phoneH = 880;
+            const phoneX = (canvas.width - phoneW) / 2;
+            const phoneY = (canvas.height - phoneH) / 2;
+
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            ctx.shadowBlur = 45;
+            ctx.fillStyle = '#0f172a';
+            roundRect(ctx, phoneX, phoneY, phoneW, phoneH, 32, true, false);
+            ctx.shadowBlur = 0;
+
+            ctx.save();
+            roundRect(ctx, phoneX + 8, phoneY + 8, phoneW - 16, phoneH - 16, 26);
+            ctx.clip();
+
+            // Mobile Header
+            ctx.fillStyle = '#065f46';
+            ctx.fillRect(phoneX, phoneY, phoneW, 110);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 26px "Hind Siliguri"';
+            ctx.fillText('ই-অভিযোগ দাখিল ফরম', phoneX + 36, phoneY + 68);
+            ctx.font = '16px "Hind Siliguri"';
+            ctx.fillStyle = '#a7f3d0';
+            ctx.fillText('গণপ্রজাতন্ত্রী বাংলাদেশ • ডিজিটাল নাগরিক সেবা', phoneX + 36, phoneY + 92);
+
+            // Field 1
+            const f1Y = phoneY + 140;
+            ctx.fillStyle = '#1e293b';
+            roundRect(ctx, phoneX + 24, f1Y, phoneW - 48, 70, 12, true, false);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '15px "Hind Siliguri"';
+            ctx.fillText('ক্যাটাগরি নির্বাচন', phoneX + 44, f1Y + 28);
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 18px "Hind Siliguri"';
+            ctx.fillText('✓ পয়ঃনিষ্কাশন ও ভাঙা সড়ক (সিটি কর্পোরেশন)', phoneX + 44, f1Y + 54);
+
+            // Field 2
+            const f2Y = f1Y + 90;
+            ctx.fillStyle = '#1e293b';
+            roundRect(ctx, phoneX + 24, f2Y, phoneW - 48, 70, 12, true, false);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '15px "Hind Siliguri"';
+            ctx.fillText('ঘটনাস্থল (জিপিএস অটো-ডিটেক্ট)', phoneX + 44, f2Y + 28);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px "Hind Siliguri"';
+            ctx.fillText('📍 সদর রোড, ওয়ার্ড নং ১০, বরিশাল সিটি', phoneX + 44, f2Y + 54);
+
+            // Field 3
+            const f3Y = f2Y + 90;
+            ctx.fillStyle = '#1e293b';
+            roundRect(ctx, phoneX + 24, f3Y, phoneW - 48, 110, 12, true, false);
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 17px "Hind Siliguri"';
+            ctx.fillText('📷 প্রমাণ সংযুক্ত: sewer_leak_photo_01.jpg', phoneX + 44, f3Y + 45);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '15px "Hind Siliguri"';
+            ctx.fillText('আকার: ২.৪ মেগাবাইট • জিওট্যাগ ভেরিফায়েড', phoneX + 44, f3Y + 75);
+
+            // Instant Submission Popup Card
+            if (sceneTime >= 6) {
+                const popScale = Math.min(1, (sceneTime - 6) * 2.5);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                ctx.fillRect(phoneX, phoneY, phoneW, phoneH);
+
+                ctx.save();
+                ctx.translate(phoneX + phoneW/2, phoneY + phoneH/2);
+                ctx.scale(popScale, popScale);
+
+                ctx.fillStyle = '#064e3b';
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 3;
+                roundRect(ctx, -230, -180, 460, 360, 24, true, true);
+
+                // Big Green Tick
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(0, -90, 42, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 42px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('✓', 0, -75);
+
+                ctx.font = 'bold 26px "Hind Siliguri"';
+                ctx.fillText('অভিযোগ সফলভাবে গৃহীত!', 0, -22);
+
+                ctx.font = '18px "Hind Siliguri"';
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillText('আপনার সরকারি ট্র্যাকিং নম্বর:', 0, 12);
+
+                ctx.font = 'bold 28px "Outfit", monospace';
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillText('CT-BAR-2026-000101', 0, 52);
+
+                ctx.font = '16px "Hind Siliguri"';
+                ctx.fillStyle = '#6ee7b7';
+                ctx.fillText('✓ সিটি কর্পোরেশন প্রকৌশল শাখায় প্রেরিত', 0, 96);
+                ctx.fillText('✓ নাগরিকের ফোনে এসএমএস রসিদ প্রেরণ সম্পন্ন', 0, 126);
+
+                ctx.textAlign = 'left';
+                ctx.restore();
+            }
+
+            ctx.restore();
+
+            drawFeatureCard(canvas.width - 430, 280, "⚡ শতভাগ পেপারলেস", "অফিসে না গিয়ে সরাসরি ১ ক্লিকে জমা");
+            drawFeatureCard(110, 420, "🔒 সুরক্ষিত ট্র্যাকিং কোড", "CT-BAR-2026-000101 জেনারেটেড");
+            drawFeatureCard(canvas.width - 430, 600, "📲 রিয়েল-টাইম এসএমএস", "প্রতিটি অগ্রগতির তথ্য সরাসরি ফোনে");
+
+            drawDocuTitle("সহজ ইনটেক ব্যবস্থা", "৩টি সহজ ধাপে স্মার্টফোনেই অভিযোগ দাখিল সম্পন্ন");
+        }
+
+        // ==========================================
+        // SCENE 4: Officer Console & Action Dispatch
+        // ==========================================
+        function renderScene4(progress, sceneTime) {
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Header
+            ctx.fillStyle = '#111827';
+            ctx.fillRect(0, 0, canvas.width, 85);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 26px "Hind Siliguri"';
+            ctx.fillText('সরকারি কর্মকর্তা ম্যানেজমেন্ট কনসোল — বরিশাল অঞ্চল', 50, 52);
+            ctx.fillStyle = '#34d399';
+            ctx.font = '18px "Hind Siliguri"';
+            ctx.fillText('দায়িত্বপ্রাপ্ত কর্মকর্তা: ড. মারুফ হাসান (নির্বাহী প্রকৌশলী)', canvas.width - 560, 52);
+
+            // Left Case Detail Card
+            const cardX = 80;
+            const cardY = 120;
+            const cardW = 860;
+            const cardH = 820;
+
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            roundRect(ctx, cardX, cardY, cardW, cardH, 20, true, true);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 26px "Hind Siliguri"';
+            ctx.fillText('মামলা ফাইল: CT-BAR-2026-000101', cardX + 40, cardY + 55);
+
+            // Status Badge
+            ctx.fillStyle = '#d97706';
+            roundRect(ctx, cardX + cardW - 240, cardY + 25, 200, 42, 21, true, false);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px "Hind Siliguri"';
+            ctx.textAlign = 'center';
+            ctx.fillText('● সরেজমিন তদন্তাধীন', cardX + cardW - 140, cardY + 51);
+            ctx.textAlign = 'left';
+
+            ctx.font = '20px "Hind Siliguri"';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('অভিযোগকারী: রহিম উদ্দিন • যোগাযোগ: 01711223344', cardX + 40, cardY + 115);
+            ctx.fillText('বিষয়: সদর রোড সংলগ্ন ড্রেন ও পয়ঃনিষ্কাশন পাইপলাইন সংস্কার', cardX + 40, cardY + 155);
+            ctx.fillText('এসএলএ সময়সীমা (SLA): ৪৮ ঘণ্টা • বাকি সময়: ৩৬ ঘণ্টা', cardX + 40, cardY + 195);
+
+            // Milestones
+            const steps = [
+                { title: 'অভিযোগ দাখিল ও সত্যতা যাচাই', time: 'সকাল ১০:১৫', done: true },
+                { title: 'সহকারী প্রকৌশলী বরাবরে অনুমোদন', time: 'সকাল ১১:০০', done: true },
+                { title: 'সরেজমিনে তদন্ত ও উদ্ধারকারী দল প্রেরণ', time: 'দুপুর ০১:৩০', done: sceneTime > 6 },
+                { title: 'মেরামত ও ড্রেনেজ পাইপলাইন পুনঃস্থাপন', time: 'চলমান...', done: sceneTime > 12 }
+            ];
+
+            let stepY = cardY + 270;
+            steps.forEach((st, idx) => {
+                ctx.fillStyle = st.done ? '#10b981' : '#475569';
+                ctx.beginPath();
+                ctx.arc(cardX + 60, stepY, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (idx < steps.length - 1) {
+                    ctx.fillStyle = st.done ? '#10b981' : '#334155';
+                    ctx.fillRect(cardX + 58, stepY + 15, 4, 60);
+                }
+
+                ctx.fillStyle = st.done ? '#ffffff' : '#64748b';
+                ctx.font = 'bold 20px "Hind Siliguri"';
+                ctx.fillText(st.title, cardX + 100, stepY + 6);
+                ctx.fillStyle = '#34d399';
+                ctx.font = '16px "Outfit"';
+                ctx.fillText(st.time, cardX + 550, stepY + 6);
+                stepY += 90;
+            });
+
+            // Right Panel: Field Task Force Action
+            const rightX = 990;
+            const rightY = 120;
+            const rightW = 850;
+            const rightH = 820;
+
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            roundRect(ctx, rightX, rightY, rightW, rightH, 20, true, true);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px "Hind Siliguri"';
+            ctx.fillText('সরেজমিন মেরামত ও ফিল্ড অপারেশন', rightX + 40, rightY + 55);
+
+            // Operation Blueprint
+            ctx.fillStyle = '#0f172a';
+            roundRect(ctx, rightX + 40, rightY + 95, rightW - 80, 450, 16, true, false);
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 20px "Hind Siliguri"';
+            ctx.fillText('👷 প্রকৌশল বিভাগ (Barishal City Corp)', rightX + 70, rightY + 150);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '18px "Hind Siliguri"';
+            ctx.fillText('• ড্রেনেজ চ্যানেল খনন ও ক্ষতিগ্রস্ত পাইপ অপসারণ সম্পন্ন', rightX + 70, rightY + 200);
+            ctx.fillText('• নতুন হেভি-ডিউটি আরসিসি পাইপ স্থাপন কার্যক্রম চলমান', rightX + 70, rightY + 245);
+            ctx.fillText('• ফিল্ড সুপারভাইজার সরাসরি জিপিএস অ্যাপের মাধ্যমে অগ্রগতি রিপোর্ট করছেন', rightX + 70, rightY + 290);
+
+            const pulse = (Math.sin(sceneTime * 4) + 1) / 2;
+            ctx.fillStyle = `rgba(16, 185, 129, ${0.4 + pulse * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(rightX + 70, rightY + 360, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 18px "Hind Siliguri"';
+            ctx.fillText('লাইভ ফিল্ড ট্র্যাকিং সচল • কোনো অবহেলার সুযোগ নেই', rightX + 95, rightY + 366);
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '20px "Hind Siliguri"';
+            ctx.fillText('কর্মকর্তার নোট: “স্পট ভিজিট সম্পন্ন। নির্ধারিত SLA-এর মধ্যেই সম্পূর্ণ সড়ক পরিষ্কার ও চলাচল উপযোগী হবে।”', rightX + 40, rightY + 650);
+
+            drawDocuTitle("দায়িত্বশীল প্রশাসন", "সরাসরি জবাবদিহিতা ও নির্ধারিত সময়সীমার মধ্যে কার্যকর পদক্ষেপ");
+        }
+
+        // ==========================================
+        // SCENE 5: Resolution & 5-Stars
+        // ==========================================
+        function renderScene5(progress, sceneTime) {
+            const dawnGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            dawnGrad.addColorStop(0, '#0284c7');
+            dawnGrad.addColorStop(0.5, '#38bdf8');
+            dawnGrad.addColorStop(1, '#f0fdf4');
+            ctx.fillStyle = dawnGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const cardW = 1000;
+            const cardH = 750;
+            const cardX = (canvas.width - cardW) / 2;
+            const cardY = (canvas.height - cardH) / 2;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+            ctx.shadowBlur = 50;
+            roundRect(ctx, cardX, cardY, cardW, cardH, 24, true, false);
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#059669';
+            roundRect(ctx, cardX, cardY, cardW, 140, 24, true, false);
+            ctx.fillRect(cardX, cardY + 100, cardW, 40);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px "Hind Siliguri"';
+            ctx.textAlign = 'center';
+            ctx.fillText('অভিযোগ সফলভাবে সমাধান ও নিষ্পত্তি হয়েছে! 🎉', cardX + cardW/2, cardY + 70);
+            ctx.font = '20px "Hind Siliguri"';
+            ctx.fillText('ট্র্যাকিং আইডি: CT-BAR-2026-000101 • বরিশাল সদর রোড সংস্কার সম্পন্ন', cardX + cardW/2, cardY + 110);
+
+            const metricY = cardY + 220;
+            drawMetricBox(cardX + 60, metricY, 260, 130, '⏱️ সমাধান সময়', '৩৬ ঘণ্টা', 'নির্ধারিত SLA-এর আগেই সম্পন্ন');
+            drawMetricBox(cardX + 370, metricY, 260, 130, '📍 সরেজমিন প্রমাণ', '১০০% ভেরিফাইড', 'বিভাগীয় প্রধান দ্বারা অনুমোদিত');
+            drawMetricBox(cardX + 680, metricY, 260, 130, '⭐ নাগরিক সন্তুষ্টি', '৫ / ৫ স্টার', 'নাগরিক রহিম উদ্দিনের রেটিং');
+
+            const quoteY = cardY + 400;
+            ctx.fillStyle = '#f8fafc';
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            roundRect(ctx, cardX + 60, quoteY, cardW - 120, 230, 16, true, true);
+
+            ctx.fillStyle = '#047857';
+            ctx.font = 'bold 24px "Hind Siliguri"';
+            ctx.fillText('নাগরিক মন্তব্য ও প্রতিক্রিয়া (Feedback):', cardX + 100, quoteY + 50);
+
+            ctx.fillStyle = '#334155';
+            ctx.font = 'italic 22px "Hind Siliguri"';
+            ctx.fillText('“আমি কখনো ভাবিনি ঘরে বসে কোনো দালাল ছাড়া এত দ্রুত সমস্যার স্থায়ী সমাধান পাব।', cardX + 100, quoteY + 100);
+            ctx.fillText('নাগরিক অভিযোগ প্ল্যাটফর্মের পুরো টিমকে আমার আন্তরিক ধন্যবাদ!”', cardX + 100, quoteY + 140);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 32px sans-serif';
+            ctx.fillText('⭐⭐⭐⭐⭐', cardX + 100, quoteY + 195);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '18px "Hind Siliguri"';
+            ctx.fillText('— রহিম উদ্দিন (সচেতন নাগরিক, বরিশাল সদর)', cardX + 320, quoteY + 190);
+
+            ctx.textAlign = 'left';
+
+            drawDocuTitle("সাফল্যের গল্প", "স্বচ্ছ প্রশাসন • নাগরিকদের মুখে স্বস্তির হাসি");
+        }
+
+        // ==========================================
+        // SCENE 6: Grand Finale & National Call to Action
+        // ==========================================
+        function renderScene6(progress, sceneTime) {
+            const finalGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, 1000);
+            finalGrad.addColorStop(0, '#064e3b');
+            finalGrad.addColorStop(0.7, '#022c22');
+            finalGrad.addColorStop(1, '#000000');
+            ctx.fillStyle = finalGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const pulse = (Math.sin(sceneTime * 3) + 1) / 2;
+            ctx.fillStyle = `rgba(245, 158, 11, ${0.05 + pulse * 0.08})`;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 120, 360, 0, Math.PI * 2);
+            ctx.fill();
+
+            const emblemY = canvas.height/2 - 170;
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, emblemY, 70, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 44px "Hind Siliguri"';
+            ctx.textAlign = 'center';
+            ctx.fillText('গণ', canvas.width/2, emblemY + 16);
+
+            ctx.font = 'bold 46px "Hind Siliguri"';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('অন্যায়ে নীরব থাকবেন না—আপনার সমস্যা জানান আজই!', canvas.width/2, emblemY + 150);
+
+            ctx.font = 'bold 32px "Hind Siliguri"';
+            ctx.fillStyle = '#34d399';
+            ctx.fillText('নাগরিক সেবা ও অভিযোগ প্রতিকার প্ল্যাটফর্ম', canvas.width/2, emblemY + 210);
+
+            const badgeY = emblemY + 280;
+            drawCtaPill(canvas.width/2 - 320, badgeY, '🌐 ওয়েবসাইট', 'nagorik.gov.bd');
+            drawCtaPill(canvas.width/2, badgeY, '📞 জাতীয় হেল্পলাইন', 'টোল-ফ্রি ৩৩৩ / ১৬১০০');
+            drawCtaPill(canvas.width/2 + 320, badgeY, '📱 মোবাইল অ্যাপ', 'Google Play & App Store');
+
+            ctx.font = '20px "Hind Siliguri"';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('গণপ্রজাতন্ত্রী বাংলাদেশ সরকার কর্তৃক সুরক্ষিত ও পরিচালিত • শতভাগ স্বচ্ছ ও জবাবদিহিমূলক', canvas.width/2, canvas.height - 60);
+
+            ctx.textAlign = 'left';
+        }
+
+        // Helpers
+        function drawDocuTitle(tag, sub) {
+            ctx.save();
+            const y = 60;
+            const x = 70;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+            roundRect(ctx, x, y, 560, 65, 10, true, false);
+
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(x, y, 6, 65);
+
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 14px "Outfit", sans-serif';
+            ctx.fillText(tag.toUpperCase(), x + 24, y + 26);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 19px "Hind Siliguri"';
+            ctx.fillText(sub, x + 24, y + 52);
+            ctx.restore();
+        }
+
+        function drawFeatureCard(x, y, title, desc) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+            ctx.lineWidth = 1.5;
+            roundRect(ctx, x, y, 360, 80, 14, true, true);
+
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 18px "Hind Siliguri"';
+            ctx.fillText(title, x + 20, y + 32);
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '14px "Hind Siliguri"';
+            ctx.fillText(desc, x + 20, y + 58);
+            ctx.restore();
+        }
+
+        function drawMetricBox(x, y, w, h, label, val, sub) {
+            ctx.fillStyle = '#f1f5f9';
+            roundRect(ctx, x, y, w, h, 14, true, false);
+
+            ctx.fillStyle = '#475569';
+            ctx.font = '16px "Hind Siliguri"';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x + w/2, y + 35);
+
+            ctx.fillStyle = '#059669';
+            ctx.font = 'bold 30px "Hind Siliguri"';
+            ctx.fillText(val, x + w/2, y + 75);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '14px "Hind Siliguri"';
+            ctx.fillText(sub, x + w/2, y + 105);
+            ctx.textAlign = 'left';
+        }
+
+        function drawCtaPill(x, y, title, val) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+            ctx.lineWidth = 2;
+            roundRect(ctx, x - 140, y - 40, 280, 80, 16, true, true);
+
+            ctx.fillStyle = '#a7f3d0';
+            ctx.font = '16px "Hind Siliguri"';
+            ctx.textAlign = 'center';
+            ctx.fillText(title, x, y - 10);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px "Outfit", sans-serif';
+            ctx.fillText(val, x, y + 20);
+            ctx.restore();
+        }
+
+        function roundRect(ctx, x, y, width, height, radius, fill = false, stroke = false) {
+            if (typeof radius === 'undefined') radius = 5;
+            if (typeof radius === 'number') {
+                radius = {tl: radius, tr: radius, br: radius, bl: radius};
+            } else {
+                const defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+                for (let side in defaultRadius) {
+                    radius[side] = radius[side] || defaultRadius[side];
+                }
+            }
+            ctx.beginPath();
+            ctx.moveTo(x + radius.tl, y);
+            ctx.lineTo(x + width - radius.tr, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+            ctx.lineTo(x + width, y + height - radius.br);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+            ctx.lineTo(x + radius.bl, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+            ctx.lineTo(x, y + radius.tl);
+            ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+            ctx.closePath();
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
+        }
+
+        // ==========================================
+        // RENDER ENGINE LOOP
+        // ==========================================
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const scene = getActiveScene();
+            const sceneIndex = scenes.indexOf(scene);
+            const progress = (currentTime - scene.start) / (scene.end - scene.start);
+            const sceneTime = currentTime - scene.start;
+
+            if (sceneIndex !== activeSceneIndex) {
+                activeSceneIndex = sceneIndex;
+                if (scene.chord) {
+                    playChord(scene.chord, 5.0);
+                }
+                updateSubtitle(scene.tag, scene.text);
+                updateActiveChapter(sceneIndex);
+
+                // Play the actual Bengali voice MP3!
+                if (isPlaying) {
+                    playVoice(scene.voiceIndex);
+                }
+            }
+
+            scene.render(progress, sceneTime);
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const pct = (currentTime / TOTAL_DURATION) * 100;
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('timeDisplay').textContent = formatTime(currentTime) + ' / 02:00';
+        }
+
+        function updateSubtitle(tag, text) {
+            document.getElementById('narrativeTag').textContent = tag;
+            document.getElementById('narrativeText').textContent = text;
+        }
+
+        function updateActiveChapter(idx) {
+            const cards = document.querySelectorAll('.scene-card');
+            cards.forEach((c, i) => {
+                if (i === idx) c.classList.add('active');
+                else c.classList.remove('active');
+            });
+        }
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function tick(timestamp) {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            const delta = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+
+            if (isPlaying) {
+                currentTime += delta;
+                if (currentTime >= TOTAL_DURATION) {
+                    currentTime = TOTAL_DURATION;
+                    pause();
+                }
+            }
+
+            render();
+
+            if (isPlaying) {
+                animFrameId = requestAnimationFrame(tick);
+            }
+        }
+
+        function play() {
+            initAudio();
+            isPlaying = true;
+            lastTimestamp = performance.now();
+            document.getElementById('playScreen').classList.add('hidden');
+            document.getElementById('playLabel').textContent = '⏸️ পজ করুন';
+
+            const scene = getActiveScene();
+            if (scene) {
+                playVoice(scene.voiceIndex);
+            }
+
+            animFrameId = requestAnimationFrame(tick);
+        }
+
+        function pause() {
+            isPlaying = false;
+            stopAllVoices();
+            document.getElementById('playScreen').classList.remove('hidden');
+            document.getElementById('playLabel').textContent = '▶ প্লে করুন';
+            if (animFrameId) {
+                cancelAnimationFrame(animFrameId);
+                animFrameId = null;
+            }
+            render();
+        }
+
+        function togglePlay() {
+            if (isPlaying) pause();
+            else play();
+        }
+
+        function jumpTo(sec) {
+            initAudio();
+            stopAllVoices();
+            currentTime = Math.max(0, Math.min(TOTAL_DURATION, sec));
+            activeSceneIndex = -1;
+            render();
+            if (!isPlaying) {
+                play();
+            }
+        }
+
+        document.getElementById('btnPlay').addEventListener('click', togglePlay);
+        document.getElementById('playScreen').addEventListener('click', play);
+        document.getElementById('btnRestart').addEventListener('click', () => {
+            jumpTo(0);
+        });
+
+        document.getElementById('progressTrack').addEventListener('click', (e) => {
+            const rect = progressTrack.getBoundingClientRect();
+            const ratio = (e.clientX - rect.left) / rect.width;
+            jumpTo(ratio * TOTAL_DURATION);
+        });
+
+        document.getElementById('btnAudio').addEventListener('click', () => {
+            isAudioOn = !isAudioOn;
+            if (!isAudioOn) stopAllVoices();
+            document.getElementById('btnAudio').textContent = isAudioOn ? '🔊 অডিও সাউন্ড অন' : '🔇 অডিও অফ';
+            showToast(isAudioOn ? 'বাংলা ভয়েস ও সাউন্ড চালু হয়েছে' : 'অডিও নিঃশব্দ করা হয়েছে');
+        });
+
+        document.getElementById('btnFull').addEventListener('click', () => {
+            const container = document.getElementById('cinemaContainer');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => alert(err.message));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Instant MP4/WebM Video Exporter
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isExporting = false;
+
+        document.getElementById('btnDownload').addEventListener('click', startExport);
+
+        function startExport() {
+            initAudio();
+            if (isExporting) return;
+            isExporting = true;
+            showToast('সিনেমাটিক ভিডিও রেন্ডারিং শুরু হয়েছে... ২ মিনিট রেকর্ড হয়ে ডাউনলোড হবে।');
+
+            jumpTo(0);
+            recordedChunks = [];
+
+            const stream = canvas.captureStream(30);
+            const mimeType = MediaRecorder.isTypeSupported('video/webm; codecs=vp9') 
+                ? 'video/webm; codecs=vp9' 
+                : 'video/webm';
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'nagorik_ovijog_cinematic_commercial_2min.webm';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                isExporting = false;
+                showToast('🎉 সিনেমাটিক প্রমো ভিডিও সফলভাবে ডাউনলোড হয়েছে!');
+            };
+
+            mediaRecorder.start();
+            play();
+
+            const exportCheck = setInterval(() => {
+                if (currentTime >= TOTAL_DURATION || !isPlaying) {
+                    clearInterval(exportCheck);
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                }
+            }, 500);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 4000);
+        }
+
+        window.onload = () => {
+            render();
+        };
+    </script>
+</body>
+</html>

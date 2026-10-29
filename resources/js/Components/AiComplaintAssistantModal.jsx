@@ -49,9 +49,13 @@ import {
     Film,
     Image as ImageIcon
 } from 'lucide-react';
+import VoiceComplaintAssistant from '@/Components/VoiceComplaintAssistant';
 
 export default function AiComplaintAssistantModal({ isOpen, onClose }) {
     if (!isOpen) return null;
+
+    // Interaction Mode: 'voice' (ভয়েস ভিত্তিক প্রশ্নোত্তর সহকারী) or 'wizard' (লিখিত উইজার্ড ফর্ম)
+    const [interactionMode, setInteractionMode] = useState('voice');
 
     // Multilingual State: 'bn' (বাংলা) or 'en' (English)
     const [lang, setLang] = useState('bn');
@@ -984,35 +988,56 @@ export default function AiComplaintAssistantModal({ isOpen, onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/75 backdrop-blur-md animate-speech-pop">
             <div className="relative w-full max-w-5xl h-[95vh] sm:h-[90vh] bg-white rounded-3xl shadow-2xl border border-emerald-200/90 flex flex-col overflow-hidden">
-                
-                {/* 1. Top Bar */}
-                <div className="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white flex items-center justify-between gap-3 border-b border-emerald-700/50 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="relative w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0">
-                            <Bot className="w-5 h-5 text-emerald-300 animate-pulse" />
-                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full animate-ping"></span>
-                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="text-sm sm:text-base font-extrabold tracking-tight">
-                                    {lang === 'bn' ? 'AI স্মার্ট অভিযোগ সহকারী' : 'AI Smart Complaint Assistant'}
-                                </h3>
-                                <span className="text-[10px] bg-emerald-400/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">
-                                    নাগরিক বন্ধু • স্মার্ট নির্দেশিকা
-                                </span>
+                {interactionMode === 'voice' ? (
+                    <VoiceComplaintAssistant
+                        dbData={dbData}
+                        complaintData={complaintData}
+                        setComplaintData={setComplaintData}
+                        evidenceItems={evidenceItems}
+                        onSwitchToWizard={() => setInteractionMode('wizard')}
+                        onClose={onClose}
+                    />
+                ) : (
+                    <>
+                        {/* 1. Top Bar */}
+                        <div className="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white flex items-center justify-between gap-3 border-b border-emerald-700/50 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="relative w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0">
+                                    <Bot className="w-5 h-5 text-emerald-300 animate-pulse" />
+                                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full animate-ping"></span>
+                                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="text-sm sm:text-base font-extrabold tracking-tight">
+                                            {lang === 'bn' ? 'AI স্মার্ট অভিযোগ সহকারী' : 'AI Smart Complaint Assistant'}
+                                        </h3>
+                                        <span className="text-[10px] bg-emerald-400/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">
+                                            নাগরিক বন্ধু • স্মার্ট নির্দেশিকা
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-emerald-200/80 hidden sm:block">
+                                        {lang === 'bn' ? 'স্বাভাবিক কথোপকথন থেকে স্বয়ংক্রিয় কর্মকর্তা শনাক্তকরণ ও অভিযোগপত্র তৈরি' : 'Conversational official identification & automated complaint drafting'}
+                                    </p>
+                                </div>
                             </div>
-                            <p className="text-[11px] text-emerald-200/80 hidden sm:block">
-                                {lang === 'bn' ? 'স্বাভাবিক কথোপকথন থেকে স্বয়ংক্রিয় কর্মকর্তা শনাক্তকরণ ও অভিযোগপত্র তৈরি' : 'Conversational official identification & automated complaint drafting'}
-                            </p>
-                        </div>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                        {/* Step Navigation Indicator */}
-                        <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 border border-white/10 text-xs font-mono">
-                            <span className="text-emerald-300 font-bold">ধাপ {currentStep}/৭</span>
-                        </div>
+                            <div className="flex items-center gap-2">
+                                {/* Switch to Voice Mode */}
+                                <button
+                                    type="button"
+                                    onClick={() => setInteractionMode('voice')}
+                                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md transition"
+                                    title="ভয়েস সহকারীর সাথে কথা বলুন"
+                                >
+                                    <Mic className="w-3.5 h-3.5 text-slate-950 animate-pulse" />
+                                    <span>ভয়েস মোড</span>
+                                </button>
+
+                                {/* Step Navigation Indicator */}
+                                <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 border border-white/10 text-xs font-mono">
+                                    <span className="text-emerald-300 font-bold">ধাপ {currentStep}/৭</span>
+                                </div>
 
                         {/* Multilingual Toggle */}
                         <div className="flex items-center bg-white/15 backdrop-blur-md rounded-xl p-0.5 border border-white/20 text-xs font-bold">
@@ -2218,6 +2243,8 @@ export default function AiComplaintAssistantModal({ isOpen, onClose }) {
                         </div>
                     </div>
                 </div>
+                    </>
+                )}
             </div>
         </div>
     );

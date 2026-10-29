@@ -117,17 +117,21 @@ class AdminDashboardController extends Controller
             ->count();
 
         $conflictCount = Complaint::where('conflict_of_interest_detected', true)->count();
+        $unreadCount = Complaint::where('is_read_by_admin', false)->count();
+        $recentComplaints = Complaint::with(['category', 'division', 'district', 'assignedOfficer'])->latest()->take(6)->get();
 
         return Inertia::render('Admin/Dashboard', [
             'metrics' => array_merge($cachedDashboard['metrics'], [
                 'documentReviewQueue' => $documentReviewQueue,
                 'conflictCount' => $conflictCount,
+                'unreadCount' => $unreadCount,
             ]),
             'monthlyTrend' => $cachedDashboard['monthlyTrend'],
             'categoriesData' => $cachedDashboard['categoriesData'],
             'districtsData' => $cachedDashboard['districtsData'],
             'organizationsData' => $cachedDashboard['organizationsData'],
             'recentAudits' => $recentAudits,
+            'recentComplaints' => $recentComplaints,
         ]);
     }
 

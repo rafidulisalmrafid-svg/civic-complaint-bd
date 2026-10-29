@@ -39,6 +39,7 @@ export default function AdminLayout({ children, title, subtitle }) {
         { name: 'স্থান ও কাঠামো', href: '/admin/geography', icon: FolderTree },
         { name: 'দপ্তর ও সংস্থা', href: '/admin/organizations', icon: Building2 },
         { name: 'কর্মকর্তা তালিকা', href: '/admin/officers', icon: Users },
+        { name: 'বিভাগ ও খাতভিত্তিক দায়িত্ব', href: '/admin/officer-assignments', icon: Shield },
         { name: 'পদবি ডিরেক্টরি', href: '/admin/posts', icon: Shield },
         { name: 'অভিযোগের ধরন ও ফর্ম', href: '/admin/categories', icon: Sliders },
         { name: 'সমস্যা ক্যাটালগ', href: '/admin/problem-types', icon: FileText },

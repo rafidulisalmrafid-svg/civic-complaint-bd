@@ -114,7 +114,7 @@ export default function PublicLayout({ children, title }) {
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     <span className="text-[10px] sm:text-xs font-bold text-emerald-800/90 flex items-center gap-1 whitespace-nowrap">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
-                                        আপনার সমস্যা, ডিজিটাল সমাধান।
+                                        অভিযোগ জানান, সমাধানের পথে এগিয়ে যান
                                     </span>
                                 </div>
                             </div>
@@ -522,7 +522,7 @@ export default function PublicLayout({ children, title }) {
                                 </div>
                                 <div>
                                     <span className="font-extrabold text-white text-base block">ই-অভিযোগ বাক্স</span>
-                                    <span className="text-[11px] text-emerald-400 block font-medium">আপনার সমস্যা, ডিজিটাল সমাধান।</span>
+                                    <span className="text-[11px] text-emerald-400 block font-medium">অভিযোগ জানান, সমাধানের পথে এগিয়ে যান</span>
                                 </div>
                             </div>
                             <p className="text-xs text-slate-400 leading-relaxed">

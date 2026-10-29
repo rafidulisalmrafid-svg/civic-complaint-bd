@@ -152,6 +152,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture }) {
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
                     >

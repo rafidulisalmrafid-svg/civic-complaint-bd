@@ -1,93 +1,80 @@
-# ==========================================
-# Multi-stage build for Civic Complaint BD
-# ==========================================
-
-# 1. Frontend Build Stage
-FROM node:20-alpine AS node_builder
+# -----------------------------------------------------------------------------
+# Stage 1: Build Frontend Assets (React + Inertia + Vite)
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS frontend-builder
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm ci || npm install
-
+RUN npm ci
 COPY . .
 RUN npm run build
 
-# 2. Production PHP 8.3 & Nginx Stage
-FROM php:8.3-fpm-alpine
+# -----------------------------------------------------------------------------
+# Stage 2: Production PHP + Apache Environment
+# -----------------------------------------------------------------------------
+FROM php:8.3-apache
 
-# Install system utilities, Nginx, Supervisor, SQLite, and build dependencies
-RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    curl \
+# Install system dependencies & libraries
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    unzip \
-    libpng \
+    curl \
     libpng-dev \
-    libjpeg-turbo \
-    libjpeg-turbo-dev \
-    freetype \
-    freetype-dev \
-    libzip \
+    libonig-dev \
+    libxml2-dev \
     libzip-dev \
-    sqlite \
-    sqlite-dev \
-    icu-dev \
-    oniguruma-dev \
-    dos2unix
+    libicu-dev \
+    sqlite3 \
+    libsqlite3-dev \
+    zip \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Configure and install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+# Install required PHP extensions
+RUN docker-php-ext-configure intl \
     && docker-php-ext-install -j$(nproc) \
-        pdo \
-        pdo_sqlite \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        gd \
-        zip \
-        intl \
-        opcache
+    pdo_sqlite \
+    mbstring \
+    zip \
+    intl \
+    bcmath \
+    opcache
 
-# Copy Composer binary
-COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Configure PHP settings for production & large uploads
-RUN echo "upload_max_filesize = 64M" > /usr/local/etc/php/conf.d/custom.ini \
-    && echo "post_max_size = 64M" >> /usr/local/etc/php/conf.d/custom.ini \
-    && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/custom.ini \
-    && echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/custom.ini
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite headers
 
-WORKDIR /var/www
+# Copy custom Apache virtual host
+COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Copy codebase
-COPY . .
+# Configure custom PHP upload and performance limits
+RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/custom-limits.ini \
+    && echo "post_max_size = 120M" >> /usr/local/etc/php/conf.d/custom-limits.ini \
+    && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/custom-limits.ini \
+    && echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/custom-limits.ini \
+    && echo "max_input_time = 300" >> /usr/local/etc/php/conf.d/custom-limits.ini \
+    && echo "variables_order = 'GPCS'" >> /usr/local/etc/php/conf.d/custom-limits.ini
 
-# Copy pre-compiled Vite bundles from stage 1
-COPY --from=node_builder /app/public/build ./public/build
+WORKDIR /var/www/html
 
-# Ensure .env exists in container
-RUN cp .env.example .env || true
+# Copy application code
+COPY . /var/www/html
 
-# Install production PHP dependencies
+# Copy compiled frontend assets from Stage 1
+COPY --from=frontend-builder /app/public/build /var/www/html/public/build
+
+# Install composer production dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Prepare directory structure
-RUN mkdir -p database storage/framework/sessions storage/framework/views storage/framework/cache storage/app/public bootstrap/cache \
-    && touch database/database.sqlite \
-    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database \
-    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache /var/www/database
+# Prepare permissions
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Copy Nginx, Supervisord, and Entrypoint configurations
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Copy and setup entrypoint script
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Fix line endings and make executable
-RUN dos2unix /usr/local/bin/entrypoint.sh \
-    && chmod +x /usr/local/bin/entrypoint.sh
-
-EXPOSE 80 10000
+EXPOSE 10000
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

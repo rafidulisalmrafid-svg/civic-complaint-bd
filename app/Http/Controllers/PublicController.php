@@ -150,8 +150,8 @@ class PublicController extends Controller
                     'selected_issues_summary' => $complaintRecord->selected_issues_summary,
                     'selected_issues' => $complaintRecord->selectedIssues->map(fn ($si) => [
                         'id' => $si->id,
-                        'name_bn' => $si->problemType?->name_bn ?? $si->issue_name_bn,
-                        'group' => $si->problemType?->issue_group,
+                        'name_bn' => $si->title_bn ?: ($si->problemType?->title_bn ?? 'নির্দিষ্ট সমস্যা'),
+                        'group' => $si->cluster_name_bn ?: ($si->problemType?->cluster_name_bn ?? ''),
                     ]),
                     'priority' => $complaintRecord->priority,
                     'priority_bn' => $complaintRecord->priority_label_bn,

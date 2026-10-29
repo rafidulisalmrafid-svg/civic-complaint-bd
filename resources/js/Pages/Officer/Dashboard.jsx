@@ -136,9 +136,17 @@ export default function OfficerDashboard({ complaints, stats, currentTab, filter
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {complaints.data.map((c) => (
-                                        <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                                        <tr key={c.id} className={`transition-colors ${!c.is_read_by_officer ? 'bg-emerald-50/30 hover:bg-emerald-50/60' : 'hover:bg-slate-50/80'}`}>
                                             <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-                                                {c.tracking_id}
+                                                <div className="flex items-center gap-2">
+                                                    <span>{c.tracking_id}</span>
+                                                    {!c.is_read_by_officer && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white shadow-xs">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                                            নতুন
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="py-3.5 px-4 max-w-xs">
                                                 <p className="font-semibold text-slate-900 truncate">{c.title}</p>

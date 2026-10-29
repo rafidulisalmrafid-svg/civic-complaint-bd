@@ -34,20 +34,27 @@ class Complaint extends Model
         'office_branch_id',
         'target_post_id',
         'is_person_unknown',
+        'accused_person_name',
         'specific_officer_id',
         'assigned_officer_id',
         'current_status',
         'custom_fields_data',
         'selected_issues_summary',
+        'other_problem_description',
         'due_at',
         'resolved_at',
         'closed_at',
         'conflict_of_interest_detected',
         'conflict_resolution_note',
+        'ai_tamper_detected',
         'routing_dispatch_time',
         'department_acknowledged_at',
         'delivery_status',
         'formal_letter_text',
+        'is_read_by_officer',
+        'is_read_by_admin',
+        'officer_read_at',
+        'admin_read_at',
     ];
 
     protected function casts(): array
@@ -56,7 +63,10 @@ class Complaint extends Model
             'is_anonymous' => 'boolean',
             'is_sensitive' => 'boolean',
             'is_person_unknown' => 'boolean',
+            'ai_tamper_detected' => 'boolean',
             'conflict_of_interest_detected' => 'boolean',
+            'is_read_by_officer' => 'boolean',
+            'is_read_by_admin' => 'boolean',
             'latitude' => 'float',
             'longitude' => 'float',
             'custom_fields_data' => 'array',
@@ -65,6 +75,8 @@ class Complaint extends Model
             'closed_at' => 'datetime',
             'routing_dispatch_time' => 'datetime',
             'department_acknowledged_at' => 'datetime',
+            'officer_read_at' => 'datetime',
+            'admin_read_at' => 'datetime',
         ];
     }
 
@@ -223,5 +235,10 @@ class Complaint extends Model
     public function feedback()
     {
         return $this->hasOne(ComplaintFeedback::class);
+    }
+
+    public function adminOfficerMessages()
+    {
+        return $this->hasMany(AdminOfficerMessage::class)->orderBy('created_at', 'asc');
     }
 }

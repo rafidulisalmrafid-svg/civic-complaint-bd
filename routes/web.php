@@ -15,7 +15,9 @@ use App\Http\Controllers\Admin\RoutingSlaController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProblemTypeController;
+use App\Http\Controllers\Admin\OfficerAssignmentController;
 use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\ChatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,6 +63,7 @@ Route::prefix('api/ai')->name('api.ai.')->group(function () {
     Route::post('/submit-complaint', [AiAssistantController::class, 'submitComplaint'])->name('submit');
     Route::post('/verify-document', [AiAssistantController::class, 'verifyDocument'])->name('verify-document');
     Route::post('/track-status', [AiAssistantController::class, 'trackStatus'])->name('track-status');
+    Route::get('/tts', [AiAssistantController::class, 'speak'])->name('tts');
 });
 
 /*
@@ -123,10 +126,15 @@ Route::middleware(['auth', 'role:main_admin'])->prefix('admin')->name('admin.')-
     Route::post('/geography/post-office', [GeographyController::class, 'storePostOffice'])->name('geography.post-office');
     Route::post('/geography/toggle/{type}/{id}', [GeographyController::class, 'toggleStatus'])->name('geography.toggle');
 
-    // Organizations & Offices
+    // Organizations, Offices & Branches
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations');
     Route::post('/organizations/org', [OrganizationController::class, 'storeOrganization'])->name('organizations.org');
     Route::post('/organizations/office', [OrganizationController::class, 'storeOffice'])->name('organizations.office');
+    Route::put('/organizations/office/{office}', [OrganizationController::class, 'updateOffice'])->name('organizations.office.update');
+    Route::delete('/organizations/office/{office}', [OrganizationController::class, 'destroyOffice'])->name('organizations.office.destroy');
+    Route::post('/organizations/branch', [OrganizationController::class, 'storeBranch'])->name('organizations.branch.store');
+    Route::put('/organizations/branch/{branch}', [OrganizationController::class, 'updateBranch'])->name('organizations.branch.update');
+    Route::delete('/organizations/branch/{branch}', [OrganizationController::class, 'destroyBranch'])->name('organizations.branch.destroy');
     Route::post('/organizations/toggle/{id}', [OrganizationController::class, 'toggleStatus'])->name('organizations.toggle');
 
     // Officers
@@ -159,6 +167,13 @@ Route::middleware(['auth', 'role:main_admin'])->prefix('admin')->name('admin.')-
     Route::put('/problem-types/{problemType}', [ProblemTypeController::class, 'update'])->name('problem-types.update');
     Route::delete('/problem-types/{problemType}', [ProblemTypeController::class, 'destroy'])->name('problem-types.destroy');
 
+    // Category & Division/District Officer Assignments (বিভাগ ও খাতভিত্তিক দায়িত্ব কর্মকর্তা বণ্টন)
+    Route::get('/officer-assignments', [OfficerAssignmentController::class, 'index'])->name('officer-assignments');
+    Route::post('/officer-assignments', [OfficerAssignmentController::class, 'store'])->name('officer-assignments.store');
+    Route::put('/officer-assignments/{id}', [OfficerAssignmentController::class, 'update'])->name('officer-assignments.update');
+    Route::post('/officer-assignments/{id}/toggle', [OfficerAssignmentController::class, 'toggle'])->name('officer-assignments.toggle');
+    Route::delete('/officer-assignments/{id}', [OfficerAssignmentController::class, 'destroy'])->name('officer-assignments.destroy');
+
     // Audit Logs
     Route::get('/audit', [AuditLogController::class, 'index'])->name('audit');
 
@@ -168,4 +183,10 @@ Route::middleware(['auth', 'role:main_admin'])->prefix('admin')->name('admin.')-
 
     // AI Routing & Model Performance Evaluation (Human-in-the-loop Evaluation)
     Route::get('/ai-eval', [AdminDashboardController::class, 'aiEvaluation'])->name('ai-eval');
+});
+
+// Admin <-> Officer Internal Chat API
+Route::middleware(['auth'])->prefix('api/chat')->name('api.chat.')->group(function () {
+    Route::get('/messages', [ChatController::class, 'getMessages'])->name('messages');
+    Route::post('/messages', [ChatController::class, 'sendMessage'])->name('send');
 });

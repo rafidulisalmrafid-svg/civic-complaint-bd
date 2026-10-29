@@ -81,7 +81,9 @@ class ComplaintSubmissionController extends Controller
             'office_branch_id' => 'nullable|exists:office_branches,id',
             'specific_officer_id' => 'nullable|exists:officer_profiles,id',
             'is_person_unknown' => 'nullable|boolean',
+            'accused_person_name' => 'nullable|string|max:255',
             'selected_problems' => 'nullable|array',
+            'other_problem_description' => 'nullable|string|max:2000',
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:5000',
             'priority' => 'nullable|in:low,medium,high,urgent',
@@ -89,13 +91,15 @@ class ComplaintSubmissionController extends Controller
             'complainant_name' => 'required_without:is_anonymous|nullable|string|max:100',
             'complainant_phone' => 'required_without:is_anonymous|nullable|string|max:20',
             'camera_photos' => 'nullable|array',
-            'attachments.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,webp,pdf',
+            'attachments.*' => 'nullable|file|max:102400|mimes:jpg,jpeg,png,webp,gif,pdf,mp4,mov,avi,webm,mkv,3gp,3gpp,m4v,wmv,doc,docx,odt,rtf',
         ], [
             'division_id.required' => 'বিভাগ নির্বাচন করা আবশ্যক।',
             'district_id.required' => 'জেলা নির্বাচন করা আবশ্যক।',
             'category_id.required' => 'সেবা বা দপ্তরের ধরন নির্বাচন করুন।',
             'office_id.required' => 'অফিস নির্বাচন করা আবশ্যক।',
             'complainant_phone.required_without' => 'মোবাইল নম্বর প্রদান করা আবশ্যক।',
+            'attachments.*.max' => 'সংযুক্ত ফাইলের আকার সর্বোচ্চ ১০০ মেগাবাইট পর্যন্ত হতে পারে।',
+            'attachments.*.mimes' => 'অনুমোদিত ফরম্যাটের ফাইল বা ভিডিও নির্বাচন করুন (jpg, png, webp, mp4, webm, mov, avi, 3gp, mkv, pdf, doc)।',
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -126,7 +130,12 @@ class ComplaintSubmissionController extends Controller
 
             // 3. Category & Priority
             $category = ComplaintCategory::findOrFail($request->category_id);
-            $priority = $request->priority ?: $category->default_priority;
+            $hasLiveCameraEvidence = $request->has('camera_photos') && is_array($request->camera_photos) && count($request->camera_photos) > 0;
+            $priority = $request->priority ?: ($category->default_priority ?: 'medium');
+            if ($hasLiveCameraEvidence && in_array($priority, ['low', 'medium'])) {
+                $priority = 'high'; // Live camera evidence gets direct priority boost
+            }
+
             $office = Office::findOrFail($request->office_id);
             $branch = $request->office_branch_id ? OfficeBranch::find($request->office_branch_id) : null;
             $officer = $request->specific_officer_id ? OfficerProfile::find($request->specific_officer_id) : null;
@@ -151,16 +160,24 @@ class ComplaintSubmissionController extends Controller
             $selectedProblemIds = $request->input('selected_problems', []);
             $selectedProblems = ComplaintProblemType::whereIn('id', $selectedProblemIds)->get();
             $issueTitles = $selectedProblems->pluck('title_bn')->toArray();
+            if ($request->filled('other_problem_description')) {
+                $issueTitles[] = 'অন্যান্য সমস্যা: ' . trim($request->other_problem_description);
+            }
             $issuesSummary = implode(', ', $issueTitles);
+
+            // Accused Person identification details
+            $accusedPersonName = $request->boolean('is_person_unknown') 
+                ? null 
+                : ($officer ? $officer->name_bn : ($request->filled('accused_person_name') ? trim($request->accused_person_name) : null));
 
             // Generate clean title if not provided
             $title = $request->title;
             if (empty($title)) {
                 $targetName = $request->boolean('is_person_unknown')
                     ? ($branch ? $branch->name_bn : $office->name_bn)
-                    : ($officer ? $officer->name_bn : ($branch ? $branch->name_bn : $office->name_bn));
+                    : ($accusedPersonName ?: ($branch ? $branch->name_bn : $office->name_bn));
 
-                $firstIssue = $selectedProblems->first()?->title_bn ?? 'নাগরিক সেবা প্রাপ্তিতে বিঘ্ন';
+                $firstIssue = $selectedProblems->first()?->title_bn ?? ($request->filled('other_problem_description') ? trim($request->other_problem_description) : 'নাগরিক সেবা প্রাপ্তিতে বিঘ্ন');
                 $title = "{$targetName} — {$firstIssue}";
             }
 
@@ -169,7 +186,12 @@ class ComplaintSubmissionController extends Controller
             if (empty($description)) {
                 $description = "স্থান: " . ($office->name_bn ?? '') . "। ";
                 if ($branch) $description .= "শাখা: {$branch->name_bn}। ";
-                if ($officer && ! $request->boolean('is_person_unknown')) $description .= "কর্মকর্তা: {$officer->name_bn} ({$officer->designation_bn})। ";
+                if ($accusedPersonName) {
+                    $designation = $officer ? " ({$officer->designation_bn})" : "";
+                    $description .= "অভিযুক্ত কর্মকর্তা/ব্যক্তি: {$accusedPersonName}{$designation}। ";
+                } elseif ($request->boolean('is_person_unknown')) {
+                    $description .= "অভিযুক্ত ব্যক্তি: অজ্ঞাত (দপ্তর প্রধানের দৃষ্টি আকর্ষণ)। ";
+                }
                 if (! empty($issuesSummary)) $description .= "চিহ্নিত সমস্যা: {$issuesSummary}।";
             }
 
@@ -193,9 +215,11 @@ class ComplaintSubmissionController extends Controller
                 'office_branch_id' => $branch?->id,
                 'specific_officer_id' => $officer?->id,
                 'is_person_unknown' => $request->boolean('is_person_unknown'),
+                'accused_person_name' => $accusedPersonName,
                 'assigned_officer_id' => $routed['assigned_officer_id'],
                 'current_status' => 'submitted',
                 'selected_issues_summary' => $issuesSummary,
+                'other_problem_description' => $request->filled('other_problem_description') ? trim($request->other_problem_description) : null,
                 'due_at' => $dueAt,
                 'conflict_of_interest_detected' => $routed['conflict_of_interest'] ?? false,
                 'conflict_resolution_note' => $routed['conflict_note'] ?? null,
@@ -213,6 +237,8 @@ class ComplaintSubmissionController extends Controller
                 ]);
             }
 
+            $anyAiTamperDetected = false;
+
             // 9. Store Camera Photos (Base64 data URLs from HTML5 camera) with AI Document Verification
             if ($request->has('camera_photos') && is_array($request->camera_photos)) {
                 foreach ($request->camera_photos as $index => $dataUrl) {
@@ -227,18 +253,23 @@ class ComplaintSubmissionController extends Controller
 
                         Storage::disk('public')->put($filePath, $imageBase64);
 
-                        // Run verification on saved camera photo
+                        // Run verification on saved camera photo with is_camera_capture = true
                         $verification = DocumentVerificationService::verifyDocument($filePath, [
                             'complainant_name' => $complaint->complainant_name,
                             'office_name' => $office->name_bn,
                             'incident_date' => date('d/m/Y'),
                             'title' => $complaint->title,
+                            'is_camera_capture' => true,
                         ]);
+
+                        if (! empty($verification['ai_tamper_detected'])) {
+                            $anyAiTamperDetected = true;
+                        }
 
                         ComplaintAttachment::create([
                             'complaint_id' => $complaint->id,
                             'file_path' => $filePath,
-                            'original_filename' => 'ক্যামেরা ছবি ' . ($index + 1) . '.' . $imageType,
+                            'original_filename' => 'ক্যামেরা লাইভ ছবি ' . ($index + 1) . '.' . $imageType,
                             'mime_type' => 'image/' . $imageType,
                             'file_size' => strlen($imageBase64),
                             'is_camera_capture' => true,
@@ -253,6 +284,7 @@ class ComplaintSubmissionController extends Controller
                             'is_duplicate' => $verification['is_duplicate'],
                             'duplicate_of_attachment_id' => $verification['duplicate_of_attachment_id'],
                             'analysis_flags' => $verification['analysis_flags'],
+                            'ai_tamper_detected' => $verification['ai_tamper_detected'] ?? false,
                             'verification_method' => $verification['verification_method'],
                             'admin_review_status' => $verification['admin_review_status'],
                         ]);
@@ -260,40 +292,58 @@ class ComplaintSubmissionController extends Controller
                 }
             }
 
-            // 10. Store standard uploaded files with AI Document Verification Pipeline
+            // 10. Store standard uploaded files (Gallery/File upload) with AI Document Verification Pipeline
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('evidence', 'public');
+                    if (! $file || ! $file->isValid()) {
+                        continue;
+                    }
 
-                    $verification = DocumentVerificationService::verifyDocument($file, [
-                        'complainant_name' => $complaint->complainant_name,
-                        'office_name' => $office->name_bn,
-                        'incident_date' => date('d/m/Y'),
-                        'title' => $complaint->title,
-                    ]);
+                    try {
+                        $path = $file->store('evidence', 'public');
 
-                    ComplaintAttachment::create([
-                        'complaint_id' => $complaint->id,
-                        'file_path' => $path,
-                        'original_filename' => $file->getClientOriginalName(),
-                        'mime_type' => $file->getClientMimeType(),
-                        'file_size' => $file->getSize(),
-                        'is_camera_capture' => false,
-                        'is_private' => true,
-                        'uploaded_by_user_id' => $user->id,
-                        'verification_status' => $verification['verification_status'],
-                        'confidence_score' => $verification['confidence_score'],
-                        'document_type' => $verification['document_type'],
-                        'ocr_extracted_text' => $verification['ocr_extracted_text'],
-                        'extracted_entities' => $verification['extracted_entities'],
-                        'file_hash' => $verification['file_hash'],
-                        'is_duplicate' => $verification['is_duplicate'],
-                        'duplicate_of_attachment_id' => $verification['duplicate_of_attachment_id'],
-                        'analysis_flags' => $verification['analysis_flags'],
-                        'verification_method' => $verification['verification_method'],
-                        'admin_review_status' => $verification['admin_review_status'],
-                    ]);
+                        $verification = DocumentVerificationService::verifyDocument($file, [
+                            'complainant_name' => $complaint->complainant_name,
+                            'office_name' => $office->name_bn,
+                            'incident_date' => date('d/m/Y'),
+                            'title' => $complaint->title,
+                            'is_camera_capture' => false,
+                        ]);
+
+                        if (! empty($verification['ai_tamper_detected'])) {
+                            $anyAiTamperDetected = true;
+                        }
+
+                        ComplaintAttachment::create([
+                            'complaint_id' => $complaint->id,
+                            'file_path' => $path,
+                            'original_filename' => $file->getClientOriginalName(),
+                            'mime_type' => $file->getClientMimeType() ?: 'application/octet-stream',
+                            'file_size' => $file->getSize() ?: 0,
+                            'is_camera_capture' => false,
+                            'is_private' => true,
+                            'uploaded_by_user_id' => $user->id,
+                            'verification_status' => $verification['verification_status'] ?? 'likely_authentic',
+                            'confidence_score' => $verification['confidence_score'] ?? 70,
+                            'document_type' => $verification['document_type'] ?? 'other_document',
+                            'ocr_extracted_text' => $verification['ocr_extracted_text'] ?? '',
+                            'extracted_entities' => $verification['extracted_entities'] ?? [],
+                            'file_hash' => $verification['file_hash'] ?? '',
+                            'is_duplicate' => $verification['is_duplicate'] ?? false,
+                            'duplicate_of_attachment_id' => $verification['duplicate_of_attachment_id'] ?? null,
+                            'analysis_flags' => $verification['analysis_flags'] ?? [],
+                            'ai_tamper_detected' => $verification['ai_tamper_detected'] ?? false,
+                            'verification_method' => $verification['verification_method'] ?? 'Heuristic_V2',
+                            'admin_review_status' => $verification['admin_review_status'] ?? 'approved',
+                        ]);
+                    } catch (\Throwable $fileEx) {
+                        \Illuminate\Support\Facades\Log::warning('Attachment upload error: ' . $fileEx->getMessage());
+                    }
                 }
+            }
+
+            if ($anyAiTamperDetected) {
+                $complaint->update(['ai_tamper_detected' => true]);
             }
 
             // 11. Initial Status History & Audit Log
@@ -315,7 +365,7 @@ class ComplaintSubmissionController extends Controller
                 'priority' => $priority,
             ], $user);
 
-            // In-app Notification
+            // In-app Notification to Complainant
             Notification::create([
                 'user_id' => $user->id,
                 'title_bn' => 'অভিযোগ সফলভাবে গৃহীত হয়েছে',
@@ -323,6 +373,9 @@ class ComplaintSubmissionController extends Controller
                 'type' => 'success',
                 'link' => route('complaint.track', ['id' => $trackingId]),
             ]);
+
+            // Dispatch instant dual notifications to Super Admin & Designated Category/Region Officer
+            \App\Services\ComplaintNotificationService::dispatchNewComplaintNotifications($complaint);
 
             // Clear cache
             Cache::forget('public_home_data');

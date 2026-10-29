@@ -7,6 +7,7 @@ use App\Models\Office;
 use App\Models\OfficeBranch;
 use App\Models\OfficerProfile;
 use App\Models\RoutingRule;
+use App\Models\CategoryOfficerAssignment;
 
 class ComplaintRoutingService
 {
@@ -14,6 +15,7 @@ class ComplaintRoutingService
      * Resolve target Organization, Office, Branch, and Responsible Officer for a complaint
      * with STRICT Conflict-of-Interest prevention and administrative escalation hierarchy:
      *
+     * 0. Category & Division/District Designated Officer (অ্যাডমিন কর্তৃক নির্ধারিত খাত ও বিভাগীয় দায়িত্ব কর্মকর্তা)
      * 1. Conflict-of-Interest Check: If complaint names a specific officer ($specificOfficerId),
      *    that officer is the SUBJECT of the grievance. They CANNOT be assigned to investigate themselves!
      * 2. Branch / Department Head Officer (excluding the targeted officer)
@@ -41,6 +43,41 @@ class ComplaintRoutingService
             $targetedOfficer = OfficerProfile::find($specificOfficerId);
             $targetedName = $targetedOfficer ? "{$targetedOfficer->name_bn} ({$targetedOfficer->designation_bn})" : "আইডি #{$specificOfficerId}";
             $conflictNote = "স্বার্থের সংঘাত রোধ: অভিযোগটি কর্মকর্তা {$targetedName}-এর বিরুদ্ধে উত্থাপিত হওয়ায় তাঁকে তদন্তভার থেকে বাদ দিয়ে নিরপেক্ষ ঊর্ধ্বতন কর্তৃপক্ষের কাছে ন্যস্ত করা হয়েছে।";
+        }
+
+        // Tier 0: Designated Category & Division/District Nodal Officer
+        $designatedAssignment = CategoryOfficerAssignment::with('officerProfile')
+            ->where('category_id', $categoryId)
+            ->where('is_active', true)
+            ->where(function ($q) use ($divisionId, $districtId) {
+                if ($districtId) {
+                    $q->where('district_id', $districtId)
+                      ->orWhere(function ($sub) use ($divisionId) {
+                          $sub->whereNull('district_id')
+                              ->when($divisionId, fn($sq) => $sq->where('division_id', $divisionId));
+                      });
+                } elseif ($divisionId) {
+                    $q->where('division_id', $divisionId)
+                      ->orWhereNull('division_id');
+                } else {
+                    $q->whereNull('division_id')->whereNull('district_id');
+                }
+            })
+            ->when($specificOfficerId, fn($q) => $q->where('officer_profile_id', '!=', $specificOfficerId))
+            ->orderByRaw('CASE WHEN district_id IS NOT NULL THEN 1 WHEN division_id IS NOT NULL THEN 2 ELSE 3 END')
+            ->first();
+
+        if ($designatedAssignment && $designatedAssignment->officerProfile) {
+            $designatedOfficer = $designatedAssignment->officerProfile;
+            return [
+                'organization_id' => $designatedOfficer->organization_id,
+                'office_id' => $designatedOfficer->office_id ?: $officeId,
+                'office_branch_id' => $branchId,
+                'assigned_officer_id' => $designatedOfficer->id,
+                'routing_tier' => 'tier_category_designated_officer',
+                'conflict_of_interest' => $conflictOfInterest,
+                'conflict_note' => $conflictNote,
+            ];
         }
 
         // Tier 1: Branch / Department Responsible Officer (excluding targeted officer)

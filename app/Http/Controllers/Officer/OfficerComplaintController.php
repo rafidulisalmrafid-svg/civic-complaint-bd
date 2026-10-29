@@ -30,16 +30,35 @@ class OfficerComplaintController extends Controller
 
         $query = Complaint::with(['category', 'subcategory', 'district', 'upazila', 'office', 'assignedOfficer', 'feedback']);
 
-        // Scope access based on officer profile & role
+        $assignedCategoryIds = [];
+        if ($officerProfile) {
+            $assignedCategoryIds = \App\Models\CategoryOfficerAssignment::where('is_active', true)
+                ->where(function ($aq) use ($officerProfile, $user) {
+                    $aq->where('officer_profile_id', $officerProfile->id)
+                      ->orWhere('user_id', $user->id);
+                })
+                ->pluck('category_id')
+                ->toArray();
+        }
+
+        // Scope access based on officer profile & role:
+        // STRICT RULE: If not Super Admin, officer can ONLY see complaints in their assigned scope
         if (! $user->isMainAdmin()) {
-            $query->where(function ($q) use ($officerProfile, $user) {
+            $query->where(function ($q) use ($officerProfile, $user, $assignedCategoryIds) {
                 if ($officerProfile) {
-                    $q->where('assigned_officer_id', $officerProfile->id)
-                      ->orWhere('office_id', $officerProfile->office_id);
+                    $q->where('assigned_officer_id', $officerProfile->id);
+
+                    if (!empty($assignedCategoryIds)) {
+                        $q->orWhereIn('category_id', $assignedCategoryIds);
+                    } else {
+                        $q->orWhere('office_id', $officerProfile->office_id);
+                    }
 
                     if ($user->isAreaOfficer() && $officerProfile->upazila_id) {
                         $q->orWhere('upazila_id', $officerProfile->upazila_id);
                     }
+                } else {
+                    $q->whereRaw('0 = 1');
                 }
             });
         }
@@ -82,7 +101,14 @@ class OfficerComplaintController extends Controller
         // Queue Statistics (Single aggregated query)
         $baseQuery = Complaint::query();
         if (! $user->isMainAdmin() && $officerProfile) {
-            $baseQuery->where(fn ($q) => $q->where('assigned_officer_id', $officerProfile->id)->orWhere('office_id', $officerProfile->office_id));
+            $baseQuery->where(function ($q) use ($officerProfile, $assignedCategoryIds) {
+                $q->where('assigned_officer_id', $officerProfile->id);
+                if (!empty($assignedCategoryIds)) {
+                    $q->orWhereIn('category_id', $assignedCategoryIds);
+                } else {
+                    $q->orWhere('office_id', $officerProfile->office_id);
+                }
+            });
         }
 
         $officerId = (int) ($officerProfile?->id ?? 0);
@@ -125,6 +151,9 @@ class OfficerComplaintController extends Controller
      */
     public function show($id)
     {
+        $user = auth()->user();
+        $officerProfile = $user?->officerProfile;
+
         $complaint = Complaint::with([
             'category',
             'subcategory',
@@ -144,7 +173,52 @@ class OfficerComplaintController extends Controller
             'actions.officer',
             'actions.proofAttachment',
             'feedback',
+            'adminOfficerMessages.sender',
+            'adminOfficerMessages.receiver',
         ])->findOrFail($id);
+
+        // Security Authorization Check:
+        if ($user && ! $user->isMainAdmin()) {
+            $assignedCategoryIds = $officerProfile
+                ? \App\Models\CategoryOfficerAssignment::where('is_active', true)
+                    ->where(function ($aq) use ($officerProfile, $user) {
+                        $aq->where('officer_profile_id', $officerProfile->id)
+                           ->orWhere('user_id', $user->id);
+                    })
+                    ->pluck('category_id')
+                    ->toArray()
+                : [];
+
+            $isAllowed = false;
+            if ($officerProfile && $complaint->assigned_officer_id === $officerProfile->id) {
+                $isAllowed = true;
+            } elseif ($officerProfile && in_array($complaint->category_id, $assignedCategoryIds)) {
+                $isAllowed = true;
+            } elseif ($officerProfile && $complaint->office_id === $officerProfile->office_id) {
+                $isAllowed = true;
+            }
+
+            if (! $isAllowed) {
+                abort(403, 'আপনার এই ক্যাটাগরি বা বিভাগের অভিযোগ দেখার অনুমতি নেই।');
+            }
+        }
+
+        // Mark as read automatically when opened
+        if ($user && $user->isMainAdmin()) {
+            if (! $complaint->is_read_by_admin) {
+                $complaint->update([
+                    'is_read_by_admin' => true,
+                    'admin_read_at' => Carbon::now(),
+                ]);
+            }
+        } elseif ($user) {
+            if (! $complaint->is_read_by_officer) {
+                $complaint->update([
+                    'is_read_by_officer' => true,
+                    'officer_read_at' => Carbon::now(),
+                ]);
+            }
+        }
 
         $offices = Office::where('status', 'active')->select('id', 'name_bn', 'name_en')->get();
         $officers = OfficerProfile::where('status', 'active')->select('id', 'name_bn', 'designation_bn', 'office_id')->get();
@@ -153,6 +227,7 @@ class OfficerComplaintController extends Controller
             'complaint' => $complaint,
             'offices' => $offices,
             'officers' => $officers,
+            'currentUser' => $user,
         ]);
     }
 
@@ -293,12 +368,17 @@ class OfficerComplaintController extends Controller
      */
     public function submitResolution(Request $request, $id)
     {
+        if (!$request->has('description') && $request->has('resolution_summary')) {
+            $request->merge(['description' => $request->input('resolution_summary')]);
+        }
+
         $request->validate([
             'description' => 'required|string|min:15|max:3000',
             'action_type' => 'required|string',
             'proof_file' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,pdf,doc,docx',
         ], [
             'description.required' => 'গৃহীত ব্যবস্থা ও সমাধানের বিবরণ লিখুন।',
+            'description.min' => 'গৃহীত ব্যবস্থা ও সমাধানের বিবরণ কমপক্ষে ১৫ অক্ষরের হতে হবে।',
         ]);
 
         $complaint = Complaint::findOrFail($id);

@@ -39,7 +39,8 @@ import {
     Layers,
     MessageCircle,
     X,
-    Volume2
+    Volume2,
+    Mic
 } from 'lucide-react';
 import CivicMascot from '@/Components/CivicMascot';
 import AiComplaintAssistantModal from '@/Components/AiComplaintAssistantModal';
@@ -54,9 +55,10 @@ const iconMap = {
     scale: Scale,
     truck: Truck,
     'help-circle': HelpCircle,
+    shield: Shield,
 };
 
-// Comprehensive data for Bangladesh's 8 Administrative Divisions with balanced distinct accents
+// Comprehensive data for Bangladesh's 8 Administrative Divisions with accurate BBS Census 2022 demographics & geography
 const DIVISIONS_DATA = [
     {
         id: 1,
@@ -64,6 +66,13 @@ const DIVISIONS_DATA = [
         name_bn: 'ঢাকা বিভাগ',
         name_en: 'Dhaka',
         districts_count: 13,
+        upazilas_count: '৯৩টি উপজেলা ও মেট্রো থানা',
+        area_sqkm_bn: '২০,৫৯৪',
+        area_sqkm_en: '20,594',
+        population_bn: '৪ কোটি ৪২ লাখ',
+        population_count_bn: '৪,৪২,১৫,১০৭',
+        density_bn: '২,১৫৬ জন/কিমি²',
+        major_rivers: 'বুড়িগঙ্গা, শীতলক্ষ্যা, ধলেশ্বরী, তুরাগ ও পদ্মা',
         tagline: 'ঐতিহাসিক রাজধানী ও প্রশাসনিক প্রাণকেন্দ্র',
         overview: 'বুড়িগঙ্গার তীরে শত শত বছরের সমৃদ্ধ ইতিহাস, স্বাধীন বাংলাদেশের রাজধানী এবং জাতীয় গৌরবের স্মৃতিচিহ্ন নিয়ে দেশের প্রধান কেন্দ্র।',
         landmarks: [
@@ -85,6 +94,13 @@ const DIVISIONS_DATA = [
         name_bn: 'চট্টগ্রাম বিভাগ',
         name_en: 'Chattogram',
         districts_count: 11,
+        upazilas_count: '১০৩টি উপজেলা ও থানা',
+        area_sqkm_bn: '৩৩,৯০৯',
+        area_sqkm_en: '33,909',
+        population_bn: '৩ কোটি ৩২ লাখ',
+        population_count_bn: '৩,৩২,০২,৩২৬',
+        density_bn: '৯৭৯ জন/কিমি²',
+        major_rivers: 'কর্ণফুলী, মেঘনা, ফেনী, সাঙ্গু ও নাফ',
         tagline: 'সমুদ্রের গর্জন, পাহাড়ের মায়া ও প্রধান সমুদ্রবন্দর',
         overview: 'বঙ্গোপসাগরের নীল জলরাশি, বিশ্বের দীর্ঘতম বালুকাময় সমুদ্রসৈকত কক্সবাজার, প্রবাল দ্বীপ সেন্টমার্টিন এবং সবুজ পাহাড়ঘেরা অনন্য সৌন্দর্যের লীলাভূমি।',
         landmarks: [
@@ -106,6 +122,13 @@ const DIVISIONS_DATA = [
         name_bn: 'রাজশাহী বিভাগ',
         name_en: 'Rajshahi',
         districts_count: 8,
+        upazilas_count: '৬৭টি উপজেলা ও থানা',
+        area_sqkm_bn: '১৮,১৫৩',
+        area_sqkm_en: '18,153',
+        population_bn: '২ কোটি ৪ লাখ',
+        population_count_bn: '২,০৩,৫৩,১১৯',
+        density_bn: '১,১২১ জন/কিমি²',
+        major_rivers: 'পদ্মা, মহানন্দা, করতোয়া ও আত্রাই',
         tagline: 'প্রাচীন প্রত্নতত্ত্ব, রেশমের শহর ও সুমিষ্ট আম',
         overview: 'ইউনেস্কো বিশ্ব ঐতিহ্য পাহাড়পুর বৌদ্ধ বিহার, পদ্মা নদীর সুশীতল বাতাস এবং বাংলাদেশের রেশম শিল্প ও মিষ্টি আমের অবিসংবাদিত ঠিকানা।',
         landmarks: [
@@ -127,6 +150,13 @@ const DIVISIONS_DATA = [
         name_bn: 'খুলনা বিভাগ',
         name_en: 'Khulna',
         districts_count: 10,
+        upazilas_count: '৫৯টি উপজেলা ও থানা',
+        area_sqkm_bn: '২২,২৮৪',
+        area_sqkm_en: '22,284',
+        population_bn: '১ কোটি ৭৪ লাখ',
+        population_count_bn: '১,৭৪,১৬,৬৪৫',
+        density_bn: '৭৮২ জন/কিমি²',
+        major_rivers: 'রূপসা, ভৈরব, পশুর, মধুমতী ও কপোতাক্ষ',
         tagline: 'ম্যানগ্রোভ সুন্দরবন ও প্রাচীন ষাট গম্বুজ মসজিদ',
         overview: 'বিশ্বের বৃহত্তম ম্যানগ্রোভ বন সুন্দরবন এবং রয়েল বেঙ্গল টাইগারের আবাসস্থল, ইউনেস্কো স্বীকৃত ঐতিহাসিক ষাট গম্বুজ মসজিদ এবং রূপসা নদীর নদীমাতৃক কোল।',
         landmarks: [
@@ -148,6 +178,13 @@ const DIVISIONS_DATA = [
         name_bn: 'বরিশাল বিভাগ',
         name_en: 'Barishal',
         districts_count: 6,
+        upazilas_count: '৪২টি উপজেলা ও মেট্রো থানা',
+        area_sqkm_bn: '১৩,২২৫',
+        area_sqkm_en: '13,225',
+        population_bn: '৯১ লাখ',
+        population_count_bn: '৯১,০০,১০২',
+        density_bn: '৬৮৮ জন/কিমি²',
+        major_rivers: 'কীর্তনখোলা, পায়রা, সন্ধ্যা, বিষখালী ও বলেশ্বর',
         tagline: 'ধান-নদী-খালের দেশ ও কুয়াকাটা সাগরকন্যা',
         overview: 'কীর্তনখোলা, সন্ধ্যা ও পায়রা নদীর শান্ত কলতান, একই সৈকতে সূর্যোদয় ও সূর্যাস্তের কুয়াকাটা এবং সবুজে ঘেরা ঐতিহ্যবাহী ভাসমান পেয়ারা বাজারের রূপসী বাংলা।',
         landmarks: [
@@ -169,6 +206,13 @@ const DIVISIONS_DATA = [
         name_bn: 'সিলেট বিভাগ',
         name_en: 'Sylhet',
         districts_count: 4,
+        upazilas_count: '৪০টি উপজেলা ও মেট্রো থানা',
+        area_sqkm_bn: '১২,৫৯৯',
+        area_sqkm_en: '12,599',
+        population_bn: '১ কোটি ১০ লাখ',
+        population_count_bn: '১,১০,৩৮,৪০৬',
+        density_bn: '৮৭৬ জন/কিমি²',
+        major_rivers: 'সুরমা, কুশিয়ারা, মনু, পিয়াইন ও খোয়াই',
         tagline: 'দুটি পাতা একটি কুঁড়ি, স্বচ্ছ জলরাশি ও চা-বাগান',
         overview: 'দিগন্তবিস্তৃত সবুজের গালিচা মোড়ানো চা-বাগান, পাহাড়ি নদী জাফলংয়ের স্বচ্ছ পাথুরে জল, রাতারগুল সোয়াম্প ফরেস্ট এবং আধ্যাত্মিক সুফি ঐতিহ্য।',
         landmarks: [
@@ -190,6 +234,13 @@ const DIVISIONS_DATA = [
         name_bn: 'রংপুর বিভাগ',
         name_en: 'Rangpur',
         districts_count: 8,
+        upazilas_count: '৫৮টি উপজেলা ও মেট্রো থানা',
+        area_sqkm_bn: '১৬,৩১৮',
+        area_sqkm_en: '16,318',
+        population_bn: '১ কোটি ৭৬ লাখ',
+        population_count_bn: '১,৭৬,১০,৯৫৬',
+        density_bn: '১,০৭৯ জন/কিমি²',
+        major_rivers: 'তিস্তা, ব্রহ্মপুত্র, ধরলা, ঘাঘট ও করতোয়া',
         tagline: 'উত্তরবঙ্গের শস্যভাণ্ডার, কান্তজিউ ও তাজহাট প্রাসাদ',
         overview: 'তিস্তা ও ধরলা নদীর অববাহিকা, পোড়ামাটির অনন্য স্থাপত্য কান্তজিউ মন্দির, রাজকীয় তাজহাট জমিদার বাড়ি এবং মহীয়সী বেগম রোকেয়ার স্মৃতিধন্য পুণ্যভূমি।',
         landmarks: [
@@ -211,6 +262,13 @@ const DIVISIONS_DATA = [
         name_bn: 'ময়মনসিংহ বিভাগ',
         name_en: 'Mymensingh',
         districts_count: 4,
+        upazilas_count: '৩৫টি উপজেলা ও থানা',
+        area_sqkm_bn: '১০,৫৮৪',
+        area_sqkm_en: '10,584',
+        population_bn: '১ কোটি ২২ লাখ',
+        population_count_bn: '১,২২,২৫,৪৯৮',
+        density_bn: '১,১৫৫ জন/কিমি²',
+        major_rivers: 'পুরাতন ব্রহ্মপুত্র, কংস, সোমেশ্বরী ও ভোগাই',
         tagline: 'ময়মনসিংহ গীতিকার সুর, গারো পাহাড় ও চিনা মাটির হ্রদ',
         overview: 'ব্রহ্মপুত্র নদের শান্ত প্রবাহ, সুসং দুর্গাপুরের নীল জলের বিরিশিরি চিনা মাটির পাহাড়, গারো পাহাড়ের সবুজ উপত্যকা ও অমর লোকগাথা ময়মনসিংহ গীতিকা।',
         landmarks: [
@@ -278,7 +336,7 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
 
     return (
         <PublicLayout>
-            <Head title="ই-অভিযোগ বাক্স — আপনার সমস্যা, ডিজিটাল সমাধান | গণপ্রজাতন্ত্রী বাংলাদেশ" />
+            <Head title="ই-অভিযোগ বাক্স — অভিযোগ জানান, সমাধানের পথে এগিয়ে যান | গণপ্রজাতন্ত্রী বাংলাদেশ" />
 
             {/* Jamdani Floral Motif Decorative Border Ribbon at Top */}
             <div className="bd-motif-border" />
@@ -314,13 +372,6 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
                         
                         {/* Left Column: Heading, Taglines, Actions & Quick Track (7 Cols) */}
                         <div className="lg:col-span-7 text-center lg:text-left space-y-4 sm:space-y-5">
-                            
-                            {/* National Identity Tag */}
-                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold shadow-2xs">
-                                <span className="w-2 h-2 rounded-full bg-red-600"></span>
-                                <span className="text-amber-600 font-serif">★</span>
-                                <span>গণপ্রজাতন্ত্রী বাংলাদেশ সরকারের ডিজিটাল নাগরিক প্ল্যাটফর্ম</span>
-                            </div>
 
                             {/* Main Heading with Balanced Contrast */}
                             <div className="space-y-1">
@@ -328,7 +379,7 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
                                     ই-অভিযোগ বাক্স
                                 </h1>
                                 <p className="text-xl sm:text-3xl lg:text-3.5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-teal-800 to-emerald-700 mt-1">
-                                    আপনার সমস্যা, ডিজিটাল সমাধান।
+                                    অভিযোগ জানান, সমাধানের পথে এগিয়ে যান
                                 </p>
                             </div>
 
@@ -349,10 +400,14 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
                                 <button
                                     type="button"
                                     onClick={() => setIsAiModalOpen(true)}
-                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 hover:from-slate-900 hover:to-indigo-900 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-slate-950/20 transition-all active:scale-95 border border-slate-700/60"
+                                    className="w-full sm:w-auto relative group inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-950 via-slate-900 to-indigo-950 hover:from-emerald-900 hover:to-indigo-900 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-emerald-950/25 transition-all active:scale-95 border border-emerald-500/40"
                                 >
-                                    <Bot className="w-5 h-5 text-emerald-400 animate-pulse" />
-                                    <span>AI সহকারীর সাথে অভিযোগ দাখিল</span>
+                                    <span className="relative flex h-2.5 w-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                    </span>
+                                    <Mic className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition" />
+                                    <span>AI সহকারীর সাথে মুখে বলে অভিযোগ করুন</span>
                                     <Sparkles className="w-4 h-4 text-amber-300" />
                                 </button>
 
@@ -450,7 +505,7 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
                                     key={div.id}
                                     type="button"
                                     onClick={() => setActiveDivisionIndex(idx)}
-                                    className={`p-3 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-between relative group ${
+                                    className={`p-2.5 sm:p-3 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-between relative group ${
                                         isSelected
                                             ? `bg-gradient-to-b ${div.activeBg} text-white border-transparent shadow-xl scale-102 ring-2 ring-slate-900/30`
                                             : `bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 shadow-2xs hover:shadow-md ${div.themeBorder}`
@@ -461,20 +516,25 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
                                             পাইলট
                                         </span>
                                     )}
-                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs mb-1.5 transition-colors ${
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs mb-1 transition-colors ${
                                         isSelected
                                             ? 'bg-white/20 text-white'
                                             : 'bg-slate-100 text-slate-800 group-hover:bg-slate-200'
                                     }`}>
                                         {idx + 1}
                                     </div>
-                                    <span className="font-bold text-xs sm:text-sm tracking-tight block">
+                                    <span className="font-extrabold text-xs sm:text-sm tracking-tight block">
                                         {div.name_bn}
                                     </span>
-                                    <span className={`text-[10px] mt-0.5 font-mono font-medium ${
+                                    <span className={`text-[10px] mt-0.5 font-semibold ${
+                                        isSelected ? 'text-amber-300 font-bold' : 'text-slate-600'
+                                    }`}>
+                                        {div.population_bn}
+                                    </span>
+                                    <span className={`text-[9.5px] font-mono ${
                                         isSelected ? 'text-slate-200' : 'text-slate-400'
                                     }`}>
-                                        {div.districts_count}টি জেলা
+                                        {div.area_sqkm_bn} কিমি²
                                     </span>
                                 </button>
                             );
@@ -504,7 +564,7 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
                                     <p className="text-sm font-semibold text-teal-800 mt-1">
                                         {currentDivision.tagline}
                                     </p>
-                                    <p className="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
+                                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
                                         {currentDivision.overview}
                                     </p>
 
@@ -592,15 +652,88 @@ export default function Home({ stats = {}, categories = [], pilotDistricts = [],
                                         <span>ঐতিহ্যের বিভাগীয় মেলবন্ধন</span>
                                     </div>
 
-                                    <h4 className="text-xl sm:text-2xl font-black text-white leading-snug">
-                                        {currentDivision.name_bn}র নাগরিক জবাবদিহিতা
-                                    </h4>
-                                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
-                                        এই বিভাগের সকল উপজেলা, পৌরসভা ও জেলা প্রশাসন পর্যায়ে দায়িত্বপ্রাপ্ত কর্মকর্তাদের তালিকা এবং সিটি কর্পোরেশন ডিরেক্টরি ডিজিটাল সিস্টেমে সংযুক্ত রয়েছে।
-                                    </p>
+                                    <div>
+                                        <h4 className="text-xl sm:text-2xl font-black text-white leading-snug">
+                                            {currentDivision.name_bn}র নাগরিক জবাবদিহিতা
+                                        </h4>
+                                        <p className="text-xs sm:text-sm text-slate-200 mt-1 leading-relaxed font-normal">
+                                            এই বিভাগের সকল উপজেলা, পৌরসভা ও জেলা প্রশাসন পর্যায়ে দায়িত্বপ্রাপ্ত কর্মকর্তাদের তালিকা এবং সিটি কর্পোরেশন ডিরেক্টরি ডিজিটাল সিস্টেমে সংযুক্ত রয়েছে।
+                                        </p>
+                                    </div>
+
+                                    {/* 4 Demographic & Geographic Glass Cards inside Accountability Box */}
+                                    <div className="grid grid-cols-2 gap-2.5 my-3">
+                                        {/* Card 1: Area */}
+                                        <div className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 transition-all flex flex-col justify-between">
+                                            <div className="flex items-center justify-between text-indigo-300 mb-1">
+                                                <span className="text-[11px] font-bold">মোট আয়তন</span>
+                                                <Compass className="w-3.5 h-3.5 text-indigo-300" />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm sm:text-base font-black text-white tracking-tight">
+                                                    {currentDivision.area_sqkm_bn} <span className="text-[10px] font-normal text-slate-300">বর্গ কিমি</span>
+                                                </div>
+                                                <div className="text-[9.5px] text-slate-300 font-mono mt-0.5">
+                                                    {currentDivision.area_sqkm_en} sq km
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card 2: Population */}
+                                        <div className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 transition-all flex flex-col justify-between">
+                                            <div className="flex items-center justify-between text-emerald-300 mb-1">
+                                                <span className="text-[11px] font-bold">স্থায়ী জনসংখ্যা</span>
+                                                <Users className="w-3.5 h-3.5 text-emerald-300" />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm sm:text-base font-black text-white tracking-tight">
+                                                    {currentDivision.population_bn}
+                                                </div>
+                                                <div className="text-[9.5px] text-slate-300 font-mono mt-0.5">
+                                                    {currentDivision.population_count_bn} জন
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card 3: Administrative Scope */}
+                                        <div className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 transition-all flex flex-col justify-between">
+                                            <div className="flex items-center justify-between text-cyan-300 mb-1">
+                                                <span className="text-[11px] font-bold">প্রশাসনিক বিস্তার</span>
+                                                <Building2 className="w-3.5 h-3.5 text-cyan-300" />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm sm:text-base font-black text-white tracking-tight">
+                                                    {currentDivision.districts_count}টি জেলা
+                                                </div>
+                                                <div className="text-[9.5px] text-slate-300 mt-0.5">
+                                                    {currentDivision.upazilas_count}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card 4: Density */}
+                                        <div className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 transition-all flex flex-col justify-between">
+                                            <div className="flex items-center justify-between text-amber-300 mb-1">
+                                                <span className="text-[11px] font-bold">জনসংখ্যার ঘনত্ব</span>
+                                                <TrendingUp className="w-3.5 h-3.5 text-amber-300" />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm sm:text-base font-black text-amber-300 tracking-tight">
+                                                    {currentDivision.density_bn}
+                                                </div>
+                                                <div className="text-[9.5px] text-slate-300 mt-0.5">
+                                                    প্রতি বর্গ কিলোমিটারে
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     {/* Live Highlights */}
-                                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-2 mt-3">
+                                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-2">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-300">প্রধান নদী অববাহিকা:</span>
+                                            <span className="text-white text-[11px] font-medium text-right max-w-[62%] line-clamp-1">{currentDivision.major_rivers}</span>
+                                        </div>
                                         <div className="flex items-center justify-between text-xs">
                                             <span className="text-slate-300">এসএলএ নিস্পত্তির মান:</span>
                                             <span className="font-mono font-bold text-amber-300">৯৫%+ লক্ষ্যমাত্রা</span>

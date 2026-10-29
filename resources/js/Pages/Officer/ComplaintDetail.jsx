@@ -21,8 +21,9 @@ import {
     Upload,
     X
 } from 'lucide-react';
+import AdminOfficerChat from '@/Components/AdminOfficerChat';
 
-export default function OfficerComplaintDetail({ complaint, offices, officers }) {
+export default function OfficerComplaintDetail({ complaint, offices, officers, currentUser }) {
     const [activeModal, setActiveModal] = useState(null); // 'status', 'note', 'forward', 'resolve'
 
     // Form 1: Status Change
@@ -279,6 +280,14 @@ export default function OfficerComplaintDetail({ complaint, offices, officers })
                                 <p className="text-xs text-slate-400 text-center py-4">এখনো কোনো অভ্যন্তরীণ নোট যোগ করা হয়নি।</p>
                             )}
                         </div>
+
+                        {/* Admin <-> Officer In-App Chat */}
+                        <AdminOfficerChat
+                            complaintId={complaint.id}
+                            trackingId={complaint.tracking_id}
+                            initialMessages={complaint.admin_officer_messages || []}
+                            currentUser={currentUser}
+                        />
 
                         {/* Timeline */}
                         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">

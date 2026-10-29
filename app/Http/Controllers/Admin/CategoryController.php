@@ -113,8 +113,12 @@ class CategoryController extends Controller
         $newStatus = $cat->status === 'active' ? 'inactive' : 'active';
         $cat->update(['status' => $newStatus]);
 
+        \Illuminate\Support\Facades\Cache::forget('submission_form_categories');
+        \Illuminate\Support\Facades\Cache::forget('home_categories');
+
         AuditLog::logEvent('category_status_toggled', $cat, null, ['status' => $newStatus]);
 
-        return back()->with('success', 'ক্যাটাগরির অবস্থা পরিবর্তন করা হয়েছে।');
+        $statusMsg = $newStatus === 'active' ? 'সক্রিয় (অন)' : 'সাময়িক নিষ্ক্রিয় (অফ)';
+        return back()->with('success', "ক্যাটাগরি '{$cat->name_bn}' সফলভাবে {$statusMsg} করা হয়েছে।");
     }
 }

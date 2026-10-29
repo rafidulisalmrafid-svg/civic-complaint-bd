@@ -87,6 +87,9 @@ class AiAssistantController extends Controller
             $divisions = Division::select('id', 'name_bn', 'name_en', 'code')
                 ->get();
 
+            $upazilas = \App\Models\Upazila::select('id', 'district_id', 'name_bn', 'name_en')
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'categories' => $categories,
@@ -95,6 +98,7 @@ class AiAssistantController extends Controller
                 'posts' => $posts,
                 'districts' => $districts,
                 'divisions' => $divisions,
+                'upazilas' => $upazilas,
             ]);
         });
     }
@@ -150,6 +154,8 @@ class AiAssistantController extends Controller
             7 => ['নদী দখল', 'পরিবেশ দূষণ', 'কারখানার ধোঁয়া', 'শব্দ দূষণ', 'গাছ কাটা', 'পুকুর ভরাট', 'pollution', 'river', 'environment', 'ধোঁয়া', 'শব্দ'],
             // সড়ক, সেতু ও পরিবহন
             8 => ['রাস্তা ভাঙা', 'খানাখন্দ', 'সড়ক', 'সেতু', 'কালভার্ট', 'ফুটপাত', 'যানজট', 'পরিবহন', 'road', 'bridge', 'pothole', 'traffic', 'পিচঢালা', 'সড়ক ও জনপথ'],
+            // আইনশৃঙ্খলা ও পুলিশ
+            10 => ['পুলিশ', 'থানা', 'জিডি', 'মামলা', 'ওসি', 'দারোগা', 'চাঁদাবাজি', 'ছিনতাই', 'কিশোর গ্যাং', 'মাদক', 'পুলিশ ফাঁড়ি', 'police', 'thana', 'gd', 'fir', 'oc', 'extortion', 'mugging', 'আইনশৃঙ্খলা', 'লকআপ', 'ট্রাফিক পুলিশ'],
         ];
 
         foreach ($categoryKeywords as $catId => $keywords) {
@@ -257,6 +263,12 @@ class AiAssistantController extends Controller
             8 => [
                 ['name_bn' => 'নির্বাহী প্রকৌশলী (সড়ক ও জনপথ বিভাগ)', 'designation_bn' => 'নির্বাহী প্রকৌশলী (সওজ)', 'badge' => 'সওজ অধিদপ্তর'],
                 ['name_bn' => 'উপজেলা প্রকৌশলী (LGED)', 'designation_bn' => 'উপজেলা প্রকৌশলী (এলজিইডি)', 'badge' => 'স্থানীয় সরকার'],
+            ],
+            10 => [
+                ['name_bn' => 'অফিসার ইনচার্জ (OC), সংশ্লিষ্ট থানা', 'designation_bn' => 'পুলিশ পরিদর্শক (OC)', 'badge' => 'থানা প্রশাসন'],
+                ['name_bn' => 'ডিউটি অফিসার / ডিউটি ইনস্পেক্টর', 'designation_bn' => 'উপ-পরিদর্শক (SI)', 'badge' => 'জিডি ও মামলা শাখা'],
+                ['name_bn' => 'তদন্তকারী কর্মকর্তা (IO)', 'designation_bn' => 'তদন্তকারী কর্মকর্তা', 'badge' => 'তদন্ত সেল'],
+                ['name_bn' => 'ট্রাফিক পরিদর্শক (TI) / ট্রাফিক পুলিশ', 'designation_bn' => 'ট্রাফিক পরিদর্শক', 'badge' => 'ট্রাফিক বিভাগ'],
             ],
         ];
 
@@ -530,8 +542,9 @@ class AiAssistantController extends Controller
      */
     public function submitComplaint(Request $request)
     {
-        // Check if POST payload was stripped by server due to post_max_size
-        if ($request->isMethod('post') && empty($_POST) && empty($_FILES) && (int) $request->header('CONTENT_LENGTH', 0) > 0) {
+        // Check if POST payload was stripped by server due to post_max_size on multipart uploads
+        $contentType = (string) $request->header('CONTENT_TYPE', '');
+        if (str_contains($contentType, 'multipart/form-data') && empty($_POST) && empty($_FILES) && (int) $request->header('CONTENT_LENGTH', 0) > 0) {
             return response()->json([
                 'success' => false,
                 'message' => 'আপলোড করা ফাইল বা ভিডিওর সাইজ সার্ভার সীমার চেয়ে বড়। অনুগ্রহ করে ১০০ মেগাবাইটের কম সাইজের ফাইল দিন অথবা ইউটিউব/গুগল ড্রাইভ লিংক ব্যবহার করুন।',
@@ -735,7 +748,7 @@ class AiAssistantController extends Controller
                 'attachments_count' => $complaint->attachments()->count(),
             ], $user);
 
-            // In-app Notification
+            // In-app Notification to Citizen
             Notification::create([
                 'user_id' => $user->id,
                 'title_bn' => 'AI সহকারীর মাধ্যমে অভিযোগ দাখিল সম্পন্ন',
@@ -743,6 +756,9 @@ class AiAssistantController extends Controller
                 'type' => 'success',
                 'link' => route('complaint.track', ['id' => $trackingId]),
             ]);
+
+            // Dispatch instant dual notifications to Super Admin & Designated Category/Region Officer
+            \App\Services\ComplaintNotificationService::dispatchNewComplaintNotifications($complaint);
 
             // Clear cache
             Cache::forget('public_home_data');
@@ -771,7 +787,8 @@ class AiAssistantController extends Controller
                     'priority' => $priority === 'urgent' ? 'জরুরি' : ($priority === 'high' ? 'উচ্চ' : 'স্বাভাবিক'),
                     'submitted_at' => now()->format('d/m/Y h:i A'),
                     'due_at' => $dueAt ? $dueAt->format('d/m/Y') : '৩ কার্যদিবস',
-                    'status' => 'দাখিলকৃত (Submitted)'
+                    'status' => 'দাখিলকৃত (Submitted)',
+                    'track_url' => route('complaint.track', ['id' => $trackingId]),
                 ],
                 'message' => 'আপনার আনুষ্ঠানিক অভিযোগ সফলভাবে দাখিল হয়েছে।'
             ]);
@@ -895,7 +912,63 @@ class AiAssistantController extends Controller
             'assigned_officer' => $assignedName ? "{$assignedName} ({$assignedPost})" : null,
             'due_at' => $complaint->due_at ? $complaint->due_at->format('d/m/Y') : null,
             'reply' => $reply,
-            'track_url' => route('complaint.track', ['id' => $complaint->tracking_id]),
         ]);
+    }
+
+    /**
+     * High-fidelity Bengali Voice Text-to-Speech Streaming Endpoint
+     */
+    public function speak(Request $request)
+    {
+        $rawText = trim((string) $request->query('text', ''));
+        if (empty($rawText)) {
+            return response()->json(['error' => 'Text required'], 400);
+        }
+
+        // Clean text for speech: remove markdown symbols, emojis, brackets
+        $cleanText = preg_replace('/[*#_`~\[\]\(\)<>{}]/u', ' ', $rawText);
+        $cleanText = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]/u', '', $cleanText);
+
+        // Convert common bulleted numbers into pleasant spoken words
+        $numberReplacements = [
+            '/^১[\.\)]|\s১[\.\)]/u' => ' এক, ',
+            '/^২[\.\)]|\s২[\.\)]/u' => ' দুই, ',
+            '/^৩[\.\)]|\s৩[\.\)]/u' => ' তিন, ',
+            '/^৪[\.\)]|\s৪[\.\)]/u' => ' চার, ',
+            '/^৫[\.\)]|\s৫[\.\)]/u' => ' পাঁচ, ',
+            '/^৬[\.\)]|\s৬[\.\)]/u' => ' ছয়, ',
+            '/^৭[\.\)]|\s৭[\.\)]/u' => ' সাত, ',
+            '/^৮[\.\)]|\s৮[\.\)]/u' => ' আট, ',
+            '/^৯[\.\)]|\s৯[\.\)]/u' => ' নয়, ',
+            '/^১০[\.\)]|\s১০[\.\)]/u' => ' দশ, ',
+        ];
+        $cleanText = preg_replace(array_keys($numberReplacements), array_values($numberReplacements), $cleanText);
+        $cleanText = preg_replace('/\s+/u', ' ', trim($cleanText));
+
+        // Cache audio responses for fast repeat questions
+        $cacheKey = 'tts_voice_v3_' . md5($cleanText);
+        $audioData = Cache::remember($cacheKey, 86400, function () use ($cleanText) {
+            $encoded = urlencode(mb_substr($cleanText, 0, 350, 'UTF-8'));
+            $url = "https://translate.google.com/translate_tts?ie=UTF-8&q={$encoded}&tl=bn&client=tw-ob";
+            $opts = [
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\nAccept: audio/mpeg\r\n",
+                    'timeout' => 8,
+                ]
+            ];
+            $context = stream_context_create($opts);
+            $content = @file_get_contents($url, false, $context);
+            return $content ?: null;
+        });
+
+        if (! $audioData) {
+            return response()->json(['error' => 'TTS generation failed'], 502);
+        }
+
+        return response($audioData, 200)
+            ->header('Content-Type', 'audio/mpeg')
+            ->header('Cache-Control', 'public, max-age=86400')
+            ->header('Accept-Ranges', 'bytes');
     }
 }

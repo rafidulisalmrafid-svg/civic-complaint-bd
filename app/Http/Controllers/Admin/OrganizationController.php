@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Office;
+use App\Models\OfficeBranch;
 use App\Models\Division;
 use App\Models\District;
 use App\Models\Upazila;
@@ -36,18 +37,26 @@ class OrganizationController extends Controller
         ->whereNull('parent_id') // Top-level root nodes
         ->get();
 
-        $allOffices = Office::with(['organization', 'district', 'upazila'])
-            ->withCount(['officers', 'complaints'])
+        $allOffices = Office::with(['organization', 'district', 'upazila', 'branches'])
+            ->withCount(['officers', 'complaints', 'branches'])
             ->paginate(15);
+
+        $allBranches = OfficeBranch::with('office.organization')
+            ->orderBy('created_at', 'desc')
+            ->take(50)
+            ->get();
 
         $orgTypes = OrganizationType::orderBy('level_order')->get();
         $parentOrgs = Organization::where('status', 'active')->select('id', 'name_bn')->get();
         $districts = District::where('status', 'active')->select('id', 'name_bn')->get();
         $upazilas = Upazila::where('status', 'active')->select('id', 'name_bn', 'district_id')->get();
+        $officeSelect = Office::where('status', 'active')->select('id', 'name_bn', 'organization_id')->get();
 
         return Inertia::render('Admin/Organizations/Index', [
             'organizationsTree' => $organizations,
             'offices' => $allOffices,
+            'branches' => $allBranches,
+            'officeSelect' => $officeSelect,
             'organizationTypes' => $orgTypes,
             'parentOrganizations' => $parentOrgs,
             'districts' => $districts,
@@ -91,6 +100,91 @@ class OrganizationController extends Controller
         AuditLog::logEvent('office_created', $office, null, $office->toArray());
 
         return back()->with('success', 'নতুন অফিস সফলভাবে তৈরি করা হয়েছে।');
+    }
+
+    public function updateOffice(Request $request, Office $office)
+    {
+        $request->validate([
+            'organization_id' => 'required|exists:organizations,id',
+            'name_bn' => 'required|string|max:200',
+            'name_en' => 'required|string|max:200',
+            'district_id' => 'nullable|exists:districts,id',
+            'upazila_id' => 'nullable|exists:upazilas,id',
+            'address' => 'nullable|string',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|email',
+            'status' => 'nullable|in:active,inactive',
+        ]);
+
+        $office->update($request->all());
+        AuditLog::logEvent('office_updated', $office, null, $office->toArray());
+
+        return back()->with('success', 'অফিসের তথ্য সফলভাবে আপডেট করা হয়েছে।');
+    }
+
+    public function destroyOffice(Office $office)
+    {
+        $officeName = $office->name_bn;
+        $office->delete();
+
+        return back()->with('success', "অফিস '{$officeName}' সফলভাবে মুছে ফেলা হয়েছে।");
+    }
+
+    public function storeBranch(Request $request)
+    {
+        $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'name_bn' => 'required|string|max:200',
+            'name_en' => 'nullable|string|max:200',
+            'code' => 'nullable|string|max:50',
+            'room_number' => 'nullable|string|max:50',
+            'floor' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'nullable|email',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $branch = OfficeBranch::create([
+            'office_id' => $request->office_id,
+            'name_bn' => $request->name_bn,
+            'name_en' => $request->name_en ?: $request->name_bn,
+            'code' => $request->code,
+            'room_number' => $request->room_number,
+            'floor' => $request->floor,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'description' => $request->description,
+            'status' => 'active',
+        ]);
+
+        AuditLog::logEvent('branch_created', $branch, null, $branch->toArray());
+
+        return back()->with('success', "নতুন শাখা '{$branch->name_bn}' সফলভাবে যোগ করা হয়েছে।");
+    }
+
+    public function updateBranch(Request $request, OfficeBranch $branch)
+    {
+        $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'name_bn' => 'required|string|max:200',
+            'name_en' => 'nullable|string|max:200',
+            'room_number' => 'nullable|string|max:50',
+            'floor' => 'nullable|string|max:50',
+            'status' => 'nullable|in:active,inactive',
+        ]);
+
+        $branch->update($request->all());
+        AuditLog::logEvent('branch_updated', $branch, null, $branch->toArray());
+
+        return back()->with('success', "শাখা '{$branch->name_bn}' সফলভাবে আপডেট করা হয়েছে।");
+    }
+
+    public function destroyBranch(OfficeBranch $branch)
+    {
+        $branchName = $branch->name_bn;
+        $branch->delete();
+
+        return back()->with('success', "শাখা '{$branchName}' সফলভাবে মুছে ফেলা হয়েছে।");
     }
 
     public function toggleStatus(Request $request, $id)
